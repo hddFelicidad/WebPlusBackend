@@ -5,7 +5,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import com.example.backend.vo.OrderStatus;
+import com.example.backend.vo.OrderPlanVo;
+import com.example.backend.vo.OrderProductionVo;
+import com.example.backend.vo.OrderStatusVo;
 import com.example.backend.vo.OrderVo;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,17 +28,32 @@ public class OrderController {
     /**
      * 获取所有订单
      */
-    @GetMapping(value = "/all")
-    public List<OrderVo> getAll() {
+    @GetMapping()
+    public List<OrderVo> get() {
+        // TODO:
+        return null;
+    }
+
+    @GetMapping(value = "/plan")
+    public List<OrderPlanVo> getPlan() {
         // TODO:
         return null;
     }
 
     /**
-     * 获取每个订单的完成情况
+     * 获取每个订单在当前时间的完成情况
      */
-    @GetMapping(value = "/status/all")
-    public List<OrderStatus> getStatus() {
+    @GetMapping(value = "/status")
+    public List<OrderStatusVo> getStatus() {
+        // TODO:
+        return null;
+    }
+
+    /**
+     * 获取订单对应的生产单
+     */
+    @GetMapping(value = "/production")
+    public List<OrderProductionVo> getProduction() {
         // TODO:
         return null;
     }
