@@ -27,7 +27,7 @@ public class TimerServiceImpl implements TimerService {
     public TimerVo getTimer() {
         var timers = repository.findAll();
         if (timers.isEmpty())
-            return null;
+            throw new RuntimeException("时间尚未初始化");
         var po = timers.get(0);
         return new TimerVo(po.getInitTime(), po.getRate());
     }
