@@ -25,13 +25,23 @@ import javax.xml.namespace.QName;
 public class ObjectFactory {
 
     private final static QName _GetOrderInfoById_QNAME = new QName("http://Service/", "getOrderInfoById");
+    private final static QName _GetAllOrdersResponse_QNAME = new QName("http://Service/", "getAllOrdersResponse");
     private final static QName _GetOrderInfoByIdResponse_QNAME = new QName("http://Service/", "getOrderInfoByIdResponse");
+    private final static QName _GetAllOrders_QNAME = new QName("http://Service/", "getAllOrders");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.example.backend.service.impl.controllerWS.orderService
      * 
      */
     public ObjectFactory() {
+    }
+
+    /**
+     * Create an instance of {@link GetAllOrdersResponse }
+     * 
+     */
+    public GetAllOrdersResponse createGetAllOrdersResponse() {
+        return new GetAllOrdersResponse();
     }
 
     /**
@@ -48,6 +58,14 @@ public class ObjectFactory {
      */
     public GetOrderInfoByIdResponse createGetOrderInfoByIdResponse() {
         return new GetOrderInfoByIdResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetAllOrders }
+     * 
+     */
+    public GetAllOrders createGetAllOrders() {
+        return new GetAllOrders();
     }
 
     /**
@@ -68,12 +86,30 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetAllOrdersResponse }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://Service/", name = "getAllOrdersResponse")
+    public JAXBElement<GetAllOrdersResponse> createGetAllOrdersResponse(GetAllOrdersResponse value) {
+        return new JAXBElement<GetAllOrdersResponse>(_GetAllOrdersResponse_QNAME, GetAllOrdersResponse.class, null, value);
+    }
+
+    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link GetOrderInfoByIdResponse }{@code >}}
      * 
      */
     @XmlElementDecl(namespace = "http://Service/", name = "getOrderInfoByIdResponse")
     public JAXBElement<GetOrderInfoByIdResponse> createGetOrderInfoByIdResponse(GetOrderInfoByIdResponse value) {
         return new JAXBElement<GetOrderInfoByIdResponse>(_GetOrderInfoByIdResponse_QNAME, GetOrderInfoByIdResponse.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetAllOrders }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://Service/", name = "getAllOrders")
+    public JAXBElement<GetAllOrders> createGetAllOrders(GetAllOrders value) {
+        return new JAXBElement<GetAllOrders>(_GetAllOrders_QNAME, GetAllOrders.class, null, value);
     }
 
 }

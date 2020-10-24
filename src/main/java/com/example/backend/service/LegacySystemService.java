@@ -18,6 +18,9 @@ public interface LegacySystemService {
     //获取订单信息
     OrderEntity getOrderInfoById(String id);
 
+    //获取订单信息
+    List<OrderEntity> getAllOrders();
+
     //获取班次信息
     List<ClassEntity> getClassInfo();
 

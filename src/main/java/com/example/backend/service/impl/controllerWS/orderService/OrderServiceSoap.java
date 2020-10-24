@@ -1,6 +1,7 @@
 
 package com.example.backend.service.impl.controllerWS.orderService;
 
+import java.util.List;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebResult;
@@ -38,5 +39,17 @@ public interface OrderServiceSoap {
     public OrderEntity getOrderInfoById(
         @WebParam(name = "arg0", targetNamespace = "")
         String arg0);
+
+    /**
+     * 
+     * @return
+     *     returns java.util.List<com.example.backend.service.impl.controllerWS.orderService.OrderEntity>
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getAllOrders", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.orderService.GetAllOrders")
+    @ResponseWrapper(localName = "getAllOrdersResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.orderService.GetAllOrdersResponse")
+    @Action(input = "http://Service/OrderServiceSoap/getAllOrdersRequest", output = "http://Service/OrderServiceSoap/getAllOrdersResponse")
+    public List<OrderEntity> getAllOrders();
 
 }
