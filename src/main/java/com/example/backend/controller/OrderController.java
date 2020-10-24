@@ -1,5 +1,7 @@
 package com.example.backend.controller;
 
+import com.example.backend.service.OrderService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,6 +19,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RestController
 @RequestMapping(value = "/order")
 public class OrderController {
+
+    @Autowired
+    OrderService orderService;
+
     /**
      * 临时插入订单
      */
@@ -29,9 +35,9 @@ public class OrderController {
      * 获取所有订单
      */
     @GetMapping()
-    public List<OrderVo> get() {
+    public List<OrderVo> getAllOrders() {
         // TODO:
-        return null;
+        return orderService.getAllOrders();
     }
 
     @GetMapping(value = "/plan")
