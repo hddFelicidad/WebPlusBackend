@@ -6,7 +6,11 @@ import com.example.backend.vo.OrderVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 @Service
@@ -29,5 +33,29 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderVoList;
+    }
+
+    @Override
+    public int insertOrder(OrderVo order) {
+        OrderEntity content = new OrderEntity();
+        content.setId(order.getId());
+        content.setMaterialId(order.getItemId());
+        content.setNumber(Long.valueOf(order.getItemCount()));
+        content.setDdl(convertToXMLGregorianCalendar(order.getDeadLine()));
+        return legacySystemService.insertOrder(content);
+    }
+
+    public XMLGregorianCalendar convertToXMLGregorianCalendar(Date date) {
+
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.setTime(date);
+        XMLGregorianCalendar gc = null;
+        try {
+            gc = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+        return gc;
     }
 }

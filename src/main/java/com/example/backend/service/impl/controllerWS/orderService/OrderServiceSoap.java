@@ -27,6 +27,33 @@ public interface OrderServiceSoap {
 
     /**
      * 
+     * @return
+     *     returns java.util.List<com.example.backend.service.impl.controllerWS.orderService.OrderEntity>
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getAllOrders", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.orderService.GetAllOrders")
+    @ResponseWrapper(localName = "getAllOrdersResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.orderService.GetAllOrdersResponse")
+    @Action(input = "http://Service/OrderServiceSoap/getAllOrdersRequest", output = "http://Service/OrderServiceSoap/getAllOrdersResponse")
+    public List<OrderEntity> getAllOrders();
+
+    /**
+     * 
+     * @param arg0
+     * @return
+     *     returns int
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "insertOrder", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.orderService.InsertOrder")
+    @ResponseWrapper(localName = "insertOrderResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.orderService.InsertOrderResponse")
+    @Action(input = "http://Service/OrderServiceSoap/insertOrderRequest", output = "http://Service/OrderServiceSoap/insertOrderResponse")
+    public int insertOrder(
+        @WebParam(name = "arg0", targetNamespace = "")
+        OrderEntity arg0);
+
+    /**
+     * 
      * @param arg0
      * @return
      *     returns com.example.backend.service.impl.controllerWS.orderService.OrderEntity
@@ -39,17 +66,5 @@ public interface OrderServiceSoap {
     public OrderEntity getOrderInfoById(
         @WebParam(name = "arg0", targetNamespace = "")
         String arg0);
-
-    /**
-     * 
-     * @return
-     *     returns java.util.List<com.example.backend.service.impl.controllerWS.orderService.OrderEntity>
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getAllOrders", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.orderService.GetAllOrders")
-    @ResponseWrapper(localName = "getAllOrdersResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.orderService.GetAllOrdersResponse")
-    @Action(input = "http://Service/OrderServiceSoap/getAllOrdersRequest", output = "http://Service/OrderServiceSoap/getAllOrdersResponse")
-    public List<OrderEntity> getAllOrders();
 
 }

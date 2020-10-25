@@ -41,6 +41,13 @@ public class LegacySystemServiceImpl implements LegacySystemService {
     }
 
     @Override
+    public int insertOrder(OrderEntity order) {
+        OrderService orderService = new OrderService();
+        OrderServiceSoap serviceSoap = orderService.getOrderServiceSoapPort();
+        return serviceSoap.insertOrder(order);
+    }
+
+    @Override
     public List<ClassEntity> getClassInfo() {
         AttendanceService attendanceService = new AttendanceService();
         AttendanceServiceSoap serviceSoap = attendanceService.getAttendanceServiceSoapPort();

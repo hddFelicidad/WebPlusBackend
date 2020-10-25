@@ -28,12 +28,30 @@ public class ObjectFactory {
     private final static QName _GetAllOrdersResponse_QNAME = new QName("http://Service/", "getAllOrdersResponse");
     private final static QName _GetOrderInfoByIdResponse_QNAME = new QName("http://Service/", "getOrderInfoByIdResponse");
     private final static QName _GetAllOrders_QNAME = new QName("http://Service/", "getAllOrders");
+    private final static QName _InsertOrderResponse_QNAME = new QName("http://Service/", "insertOrderResponse");
+    private final static QName _InsertOrder_QNAME = new QName("http://Service/", "insertOrder");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.example.backend.service.impl.controllerWS.orderService
      * 
      */
     public ObjectFactory() {
+    }
+
+    /**
+     * Create an instance of {@link InsertOrderResponse }
+     * 
+     */
+    public InsertOrderResponse createInsertOrderResponse() {
+        return new InsertOrderResponse();
+    }
+
+    /**
+     * Create an instance of {@link InsertOrder }
+     * 
+     */
+    public InsertOrder createInsertOrder() {
+        return new InsertOrder();
     }
 
     /**
@@ -110,6 +128,24 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://Service/", name = "getAllOrders")
     public JAXBElement<GetAllOrders> createGetAllOrders(GetAllOrders value) {
         return new JAXBElement<GetAllOrders>(_GetAllOrders_QNAME, GetAllOrders.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link InsertOrderResponse }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://Service/", name = "insertOrderResponse")
+    public JAXBElement<InsertOrderResponse> createInsertOrderResponse(InsertOrderResponse value) {
+        return new JAXBElement<InsertOrderResponse>(_InsertOrderResponse_QNAME, InsertOrderResponse.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link InsertOrder }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://Service/", name = "insertOrder")
+    public JAXBElement<InsertOrder> createInsertOrder(InsertOrder value) {
+        return new JAXBElement<InsertOrder>(_InsertOrder_QNAME, InsertOrder.class, null, value);
     }
 
 }

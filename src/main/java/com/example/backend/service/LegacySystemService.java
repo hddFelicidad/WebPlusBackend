@@ -21,6 +21,9 @@ public interface LegacySystemService {
     //获取订单信息
     List<OrderEntity> getAllOrders();
 
+    //插入订单
+    int insertOrder(OrderEntity order);
+
     //获取班次信息
     List<ClassEntity> getClassInfo();
 
