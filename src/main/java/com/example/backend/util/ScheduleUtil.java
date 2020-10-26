@@ -12,6 +12,11 @@ public class ScheduleUtil {
     @Autowired
     SolverManager<SubOrderSchedule, UUID> solverManager;
 
+    public ScheduleOutputData solve(ScheduleInputData data) {
+        // TODO:
+        return null;
+    }
+
     public SubOrderSchedule solve(SubOrderSchedule arrangement) {
         UUID problemId = UUID.randomUUID();
         SolverJob<SubOrderSchedule, UUID> solverJob = solverManager.solve(problemId, arrangement);
