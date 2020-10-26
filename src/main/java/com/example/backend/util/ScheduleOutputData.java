@@ -19,7 +19,7 @@ public class ScheduleOutputData {
     public class Order {
         private String id;
         private String name;
-        private List<SubOrder> subOrders;
+        private List<ScheduleOutputData.SubOrder> subOrders;
     }
 
     @Data

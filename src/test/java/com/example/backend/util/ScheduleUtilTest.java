@@ -42,12 +42,12 @@ public class ScheduleUtilTest {
         try {
             ScheduleInputData input = new ScheduleInputData(dateFormat.parse("2020-10-26 09"), groups, machines,
                     orders);
-            orders.add(input.new Order("1", "订单一", 20, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"),
-                    dateFormat.parse("2020-10-26 14")));
-            orders.add(input.new Order("2", "订单二", 25, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"),
-                    dateFormat.parse("2020-10-26 14")));
-            orders.add(input.new Order("3", "订单三", 19, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"),
-                    dateFormat.parse("2020-10-26 14")));
+            orders.add(input.new Order("1", "订单一", 40, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"),
+                    dateFormat.parse("2020-10-27 09")));
+            orders.add(input.new Order("2", "订单二", 24, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"),
+                    dateFormat.parse("2020-10-27 12")));
+            orders.add(input.new Order("3", "订单三", 36, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"),
+                    dateFormat.parse("2020-10-27 14")));
             ScheduleOutputData output = util.solve(input);
             System.out.println(output.getOrders().size());
         } catch (Exception e) {

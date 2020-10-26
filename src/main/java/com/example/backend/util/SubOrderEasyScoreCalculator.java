@@ -15,6 +15,12 @@ public class SubOrderEasyScoreCalculator implements EasyScoreCalculator<SubOrder
             // 小组不正确
             if (a.getGroup() != null && !a.getAvailableGroupIdList().contains(a.getGroup().getId()))
                 hardScore--;
+            // 小组工作时间不符合
+            if (a.getGroup() != null && a.getTimeGrain() != null) {
+                int startHourOfDay = (schedule.getStartHourOfDay() + a.getTimeGrain()) % 24;
+                if (!a.getGroup().canWorkIn(startHourOfDay, a.getNeedHour()))
+                    hardScore--;
+            }
 
             for (SubOrder b : schedule.getSubOrderList())
                 // 时间交叉

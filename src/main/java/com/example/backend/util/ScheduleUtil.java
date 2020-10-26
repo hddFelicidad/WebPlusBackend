@@ -1,6 +1,7 @@
 package com.example.backend.util;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +22,11 @@ public class ScheduleUtil {
         List<Machine> machines = data.getMachines();
         List<ScheduleInputData.Order> orders = data.getOrders();
 
-        // 任务安排的时间范围为最迟的ddl与开始时间差值的两倍 以小时为单位
+        // 任务安排的时间范围为最迟的ddl与开始时间差值的10倍 以小时为单位
+        int factor = 10;
         Date startTime = data.getStartTime();
+        Calendar startTimeCalendar = Calendar.getInstance();
+        startTimeCalendar.setTime(startTime);
         Date finalDeadline = startTime;
         int totalNeedTimeInHour = 0;
         for (ScheduleInputData.Order order : orders)
@@ -30,7 +34,7 @@ public class ScheduleUtil {
                 finalDeadline = order.getDeadline();
                 totalNeedTimeInHour = order.getNeedHour();
             }
-        int availableTimeInHour = (int) ((finalDeadline.getTime() - startTime.getTime()) / 1000L / 60L / 60L);
+        int availableTimeInHour = (int) ((finalDeadline.getTime() - startTime.getTime()) / 1000L / 60L / 60L) * factor;
         List<Integer> timeGrains = new ArrayList<>(availableTimeInHour);
         for (int i = 0; i < availableTimeInHour; i++)
             timeGrains.add(i);
@@ -52,7 +56,7 @@ public class ScheduleUtil {
         }
 
         // 排程
-        SubOrderSchedule schedule = new SubOrderSchedule(groups, machines, timeGrains, subOrders);
+        SubOrderSchedule schedule = new SubOrderSchedule(startTimeCalendar.get(Calendar.HOUR_OF_DAY), groups, machines, timeGrains, subOrders);
         schedule = solve(schedule);
 
         // 返回

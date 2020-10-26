@@ -9,11 +9,15 @@ import org.optaplanner.core.api.domain.solution.ProblemFactCollectionProperty;
 import org.optaplanner.core.api.domain.valuerange.ValueRangeProvider;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @PlanningSolution
 public class SubOrderSchedule {
+    @Getter
+    private int startHourOfDay;
+
     @ValueRangeProvider(id = "groupRange")
     @ProblemFactCollectionProperty
     private List<Group> groupList;
@@ -32,7 +36,8 @@ public class SubOrderSchedule {
     @PlanningScore
     private HardSoftScore score;
 
-    public SubOrderSchedule(List<Group> groupList, List<Machine> machineList, List<Integer> timeGrainList, List<SubOrder> subOrderList) {
+    public SubOrderSchedule(int startHourOfDay, List<Group> groupList, List<Machine> machineList, List<Integer> timeGrainList, List<SubOrder> subOrderList) {
+        this.startHourOfDay = startHourOfDay;
         this.groupList = groupList;
         this.machineList = machineList;
         this.timeGrainList = timeGrainList;
