@@ -40,17 +40,17 @@ public class ScheduleUtilTest {
         for (int i = 0; i < 50; i++)
             timeGrainList.add(i);
         List<SubOrder> subOrderList = new ArrayList<>();
-        subOrderList.add(new SubOrder("1", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2")));
-        subOrderList.add(new SubOrder("2", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2")));
-        subOrderList.add(new SubOrder("3", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2")));
-        subOrderList.add(new SubOrder("4", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2")));
-        subOrderList.add(new SubOrder("5", "2", 15, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3")));
-        subOrderList.add(new SubOrder("6", "2", 15, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3")));
-        subOrderList.add(new SubOrder("7", "2", 15, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3")));
-        subOrderList.add(new SubOrder("8", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4")));
-        subOrderList.add(new SubOrder("9", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4")));
-        subOrderList.add(new SubOrder("10", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4")));
-        subOrderList.add(new SubOrder("11", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4")));
+        subOrderList.add(new SubOrder("1", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"), 45));
+        subOrderList.add(new SubOrder("2", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"), 45));
+        subOrderList.add(new SubOrder("3", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"), 45));
+        subOrderList.add(new SubOrder("4", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"), 45));
+        subOrderList.add(new SubOrder("5", "2", 15, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"), 45));
+        subOrderList.add(new SubOrder("6", "2", 15, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"), 45));
+        subOrderList.add(new SubOrder("7", "2", 15, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"), 45));
+        subOrderList.add(new SubOrder("8", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"), 45));
+        subOrderList.add(new SubOrder("9", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"), 45));
+        subOrderList.add(new SubOrder("10", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"), 45));
+        subOrderList.add(new SubOrder("11", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"), 45));
         SubOrderSchedule arrangement = new SubOrderSchedule(groupList, machineList, timeGrainList, subOrderList);
         arrangement = util.solve(arrangement);
         System.out.println(arrangement.subOrderList.size());

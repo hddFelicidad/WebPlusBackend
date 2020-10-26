@@ -26,6 +26,7 @@ public class ScheduleOutputData {
     @AllArgsConstructor
     @NoArgsConstructor
     public class SubOrder {
+        String id;
         /**
          * 子订单开始的时间
          */

@@ -17,6 +17,7 @@ public class SubOrder {
     Integer needHour;
     List<String> availableGroupIdList;
     List<String> availableMachineTypeIdList;
+    Integer deadLineTimeGrain;
 
     @PlanningVariable(valueRangeProviderRefs = "groupRange")
     Group group;
@@ -27,11 +28,12 @@ public class SubOrder {
     @PlanningVariable(valueRangeProviderRefs = "timeGrainRange")
     Integer timeGrain;
 
-    public SubOrder(String id, String orderId, Integer needHour, List<String> availableGroupIdList, List<String> availableMachineTypeIdList) {
+    public SubOrder(String id, String orderId, Integer needHour, List<String> availableGroupIdList, List<String> availableMachineTypeIdList, Integer deadLineTimeGrain) {
         this.id = id;
         this.orderId = orderId;
         this.needHour = needHour;
         this.availableGroupIdList = availableGroupIdList;
         this.availableMachineTypeIdList = availableMachineTypeIdList;
+        this.deadLineTimeGrain = deadLineTimeGrain;
     }
 }

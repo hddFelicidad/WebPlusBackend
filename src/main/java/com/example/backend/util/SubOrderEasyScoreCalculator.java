@@ -7,6 +7,7 @@ public class SubOrderEasyScoreCalculator implements EasyScoreCalculator<SubOrder
     @Override
     public HardSoftScore calculateScore(SubOrderSchedule schedule) {
         int hardScore = 0;
+        int softScore = 0;
         for (SubOrder a : schedule.subOrderList) {
             // 设备不正确
             if (a.getMachine() != null && !a.getAvailableMachineTypeIdList().contains(a.getMachine().getMachineId()))
@@ -17,7 +18,8 @@ public class SubOrderEasyScoreCalculator implements EasyScoreCalculator<SubOrder
 
             for (SubOrder b : schedule.subOrderList)
                 // 时间交叉
-                if (a.getId().compareTo(b.getId()) < 0 && a.getTimeGrain() != null && b.getTimeGrain() != null && a.getTimeGrain() <= b.getTimeGrain()
+                if (a.getId().equals(b.getId()) && a.getTimeGrain() != null && b.getTimeGrain() != null
+                        && a.getTimeGrain() <= b.getTimeGrain()
                         && a.getTimeGrain() + a.getNeedHour() > b.getTimeGrain()) {
                     // 占用同一个小组
                     if (a.getGroup() != null && a.getGroup().equals(b.getGroup()))
@@ -26,8 +28,11 @@ public class SubOrderEasyScoreCalculator implements EasyScoreCalculator<SubOrder
                     if (a.getMachine() != null && a.getMachine().equals(b.getMachine()))
                         hardScore--;
                 }
+
+            // 超过ddl
+            if (a.getTimeGrain() + a.getNeedHour() > a.deadLineTimeGrain)
+                softScore--;
         }
-        int softScore = 0;
         return HardSoftScore.of(hardScore, softScore);
     }
 }
