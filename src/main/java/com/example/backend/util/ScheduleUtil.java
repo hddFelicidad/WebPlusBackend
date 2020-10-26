@@ -5,10 +5,10 @@ import java.util.UUID;
 import org.optaplanner.core.api.solver.SolverJob;
 import org.optaplanner.core.api.solver.SolverManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
-public class ScheduleService {
+@Component
+public class ScheduleUtil {
     @Autowired
     SolverManager<SubOrderSchedule, UUID> solverManager;
 

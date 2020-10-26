@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class ScheduleServiceTest {
+public class ScheduleUtilTest {
     @Autowired
-    ScheduleService service;
+    ScheduleUtil util;
 
     @Test
     void testSimple() {
@@ -52,7 +52,7 @@ public class ScheduleServiceTest {
         subOrderList.add(new SubOrder("10", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4")));
         subOrderList.add(new SubOrder("11", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4")));
         SubOrderSchedule arrangement = new SubOrderSchedule(groupList, machineList, timeGrainList, subOrderList);
-        arrangement = service.solve(arrangement);
+        arrangement = util.solve(arrangement);
         System.out.println(arrangement.subOrderList.size());
     }
 }
