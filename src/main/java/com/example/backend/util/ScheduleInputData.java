@@ -11,29 +11,29 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScheduleInputData {
-    Date startTime;
-    List<Group> groups;
-    List<Machine> machines;
-    List<Order> orders;
+    private Date startTime;
+    private List<Group> groups;
+    private List<Machine> machines;
+    private List<Order> orders;
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     public class Order {
-        String id;
-        String name;
+        private String id;
+        private String name;
         /**
          * 完成整个订单需要的总时间
          */
-        Integer needHour;
+        private Integer needHour;
         /**
          * 可用的小组的Id列表
          */
-        List<String> availableGroupIdList;
+        private List<String> availableGroupIdList;
         /**
          * 可用的机器的Id列表
          */
-        List<String> availableMachineTypeIdList;
-        Date deadline;
+        private List<String> availableMachineTypeIdList;
+        private Date deadline;
     }
 }

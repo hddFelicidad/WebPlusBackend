@@ -12,21 +12,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @PlanningEntity
 public class SubOrder {
-    String id;
-    String orderId;
-    Integer needHour;
-    List<String> availableGroupIdList;
-    List<String> availableMachineTypeIdList;
-    Integer deadLineTimeGrain;
+    private String id;
+    private String orderId;
+    private Integer needHour;
+    private List<String> availableGroupIdList;
+    private List<String> availableMachineTypeIdList;
+    private Integer deadLineTimeGrain;
 
     @PlanningVariable(valueRangeProviderRefs = "groupRange")
-    Group group;
+    private Group group;
 
     @PlanningVariable(valueRangeProviderRefs = "machineRange")
-    Machine machine;
+    private Machine machine;
 
     @PlanningVariable(valueRangeProviderRefs = "timeGrainRange")
-    Integer timeGrain;
+    private Integer timeGrain;
 
     public SubOrder(String id, String orderId, Integer needHour, List<String> availableGroupIdList, List<String> availableMachineTypeIdList, Integer deadLineTimeGrain) {
         this.id = id;

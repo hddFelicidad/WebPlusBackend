@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Machine {
-    String id;
-    String name;
-    String machineId;
+    private String id;
+    private String name;
+    private String machineId;
 }

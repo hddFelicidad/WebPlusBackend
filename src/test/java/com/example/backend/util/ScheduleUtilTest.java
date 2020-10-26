@@ -1,5 +1,6 @@
 package com.example.backend.util;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,44 +16,42 @@ public class ScheduleUtilTest {
 
     @Test
     void testSimple() {
-        List<Group> groupList = new ArrayList<>();
-        groupList.add(new Group("1", "组一", 5));
-        groupList.add(new Group("2", "组二", 5));
-        groupList.add(new Group("3", "组三", 5));
-        groupList.add(new Group("4", "组四", 5));
-        groupList.add(new Group("5", "组五", 5));
-        groupList.add(new Group("6", "组六", 6));
-        groupList.add(new Group("7", "组七", 6));
-        groupList.add(new Group("8", "组八", 5));
-        groupList.add(new Group("9", "组九", 5));
-        List<Machine> machineList = new ArrayList<>();
-        machineList.add(new Machine("1", "line1", "1"));
-        machineList.add(new Machine("2", "line1", "1"));
-        machineList.add(new Machine("3", "line1", "1"));
-        machineList.add(new Machine("4", "line2", "2"));
-        machineList.add(new Machine("5", "line2", "2"));
-        machineList.add(new Machine("6", "line3", "3"));
-        machineList.add(new Machine("7", "line3", "3"));
-        machineList.add(new Machine("8", "line3", "3"));
-        machineList.add(new Machine("9", "line3", "3"));
-        machineList.add(new Machine("10", "line4", "4"));
-        List<Integer> timeGrainList = new ArrayList<>();
-        for (int i = 0; i < 50; i++)
-            timeGrainList.add(i);
-        List<SubOrder> subOrderList = new ArrayList<>();
-        subOrderList.add(new SubOrder("1", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"), 45));
-        subOrderList.add(new SubOrder("2", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"), 45));
-        subOrderList.add(new SubOrder("3", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"), 45));
-        subOrderList.add(new SubOrder("4", "1", 10, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"), 45));
-        subOrderList.add(new SubOrder("5", "2", 15, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"), 45));
-        subOrderList.add(new SubOrder("6", "2", 15, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"), 45));
-        subOrderList.add(new SubOrder("7", "2", 15, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"), 45));
-        subOrderList.add(new SubOrder("8", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"), 45));
-        subOrderList.add(new SubOrder("9", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"), 45));
-        subOrderList.add(new SubOrder("10", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"), 45));
-        subOrderList.add(new SubOrder("11", "3", 10, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"), 45));
-        SubOrderSchedule arrangement = new SubOrderSchedule(groupList, machineList, timeGrainList, subOrderList);
-        arrangement = util.solve(arrangement);
-        System.out.println(arrangement.subOrderList.size());
+        List<Group> groups = new ArrayList<>();
+        groups.add(new Group("1", "组一", 5));
+        groups.add(new Group("2", "组二", 5));
+        groups.add(new Group("3", "组三", 5));
+        groups.add(new Group("4", "组四", 5));
+        groups.add(new Group("5", "组五", 5));
+        groups.add(new Group("6", "组六", 6));
+        groups.add(new Group("7", "组七", 6));
+        groups.add(new Group("8", "组八", 5));
+        groups.add(new Group("9", "组九", 5));
+        List<Machine> machines = new ArrayList<>();
+        machines.add(new Machine("1", "line1", "1"));
+        machines.add(new Machine("2", "line1", "1"));
+        machines.add(new Machine("3", "line1", "1"));
+        machines.add(new Machine("4", "line2", "2"));
+        machines.add(new Machine("5", "line2", "2"));
+        machines.add(new Machine("6", "line3", "3"));
+        machines.add(new Machine("7", "line3", "3"));
+        machines.add(new Machine("8", "line3", "3"));
+        machines.add(new Machine("9", "line3", "3"));
+        machines.add(new Machine("10", "line4", "4"));
+        List<ScheduleInputData.Order> orders = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
+        try {
+            ScheduleInputData input = new ScheduleInputData(dateFormat.parse("2020-10-26 09"), groups, machines,
+                    orders);
+            orders.add(input.new Order("1", "订单一", 20, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"),
+                    dateFormat.parse("2020-10-26 20")));
+            orders.add(input.new Order("2", "订单二", 25, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"),
+                    dateFormat.parse("2020-10-26 22")));
+            orders.add(input.new Order("3", "订单三", 17, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"),
+                    dateFormat.parse("2020-10-26 16")));
+            ScheduleOutputData output = util.solve(input);
+            System.out.println(output.getOrders().size());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

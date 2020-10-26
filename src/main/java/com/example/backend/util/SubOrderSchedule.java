@@ -16,21 +16,21 @@ import lombok.NoArgsConstructor;
 public class SubOrderSchedule {
     @ValueRangeProvider(id = "groupRange")
     @ProblemFactCollectionProperty
-    List<Group> groupList;
+    private List<Group> groupList;
 
     @ValueRangeProvider(id = "machineRange")
     @ProblemFactCollectionProperty
-    List<Machine> machineList;
+    private List<Machine> machineList;
 
     @ValueRangeProvider(id = "timeGrainRange")
     @ProblemFactCollectionProperty
-    List<Integer> timeGrainList;
+    private List<Integer> timeGrainList;
 
     @PlanningEntityCollectionProperty
-    List<SubOrder> subOrderList;
+    private List<SubOrder> subOrderList;
 
     @PlanningScore
-    HardSoftScore score;
+    private HardSoftScore score;
 
     public SubOrderSchedule(List<Group> groupList, List<Machine> machineList, List<Integer> timeGrainList, List<SubOrder> subOrderList) {
         this.groupList = groupList;

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Group {
-    String id;
-    String name;
-    Integer memberCount;
+    private String id;
+    private String name;
+    private Integer memberCount;
 }

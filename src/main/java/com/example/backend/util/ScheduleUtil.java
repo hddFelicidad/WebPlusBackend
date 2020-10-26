@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScheduleUtil {
     @Autowired
-    SolverManager<SubOrderSchedule, UUID> solverManager;
+    private SolverManager<SubOrderSchedule, UUID> solverManager;
 
     public ScheduleOutputData solve(ScheduleInputData data) {
         List<Group> groups = data.getGroups();
@@ -35,8 +35,8 @@ public class ScheduleUtil {
         for (int i = 0; i < availableTimeInHour; i++)
             timeGrains.add(i);
 
-        // 以五个小时为粒度划分子订单
-        int subOrderMaxNeedTime = 5;
+        // 以4个小时为粒度划分子订单
+        int subOrderMaxNeedTime = 4;
         List<SubOrder> subOrders = new ArrayList<>(totalNeedTimeInHour / subOrderMaxNeedTime);
         for (ScheduleInputData.Order order : orders) {
             int suborderIndex = 0;
@@ -77,7 +77,7 @@ public class ScheduleUtil {
         return res;
     }
 
-    public SubOrderSchedule solve(SubOrderSchedule arrangement) {
+    private SubOrderSchedule solve(SubOrderSchedule arrangement) {
         UUID problemId = UUID.randomUUID();
         SolverJob<SubOrderSchedule, UUID> solverJob = solverManager.solve(problemId, arrangement);
         SubOrderSchedule solution = null;
