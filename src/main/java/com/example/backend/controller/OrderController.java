@@ -41,6 +41,9 @@ public class OrderController {
         return orderService.getAllOrders();
     }
 
+    /**
+     * 获取排程后的订单计划信息：拆分情况以及子订单完成时间
+     */
     @GetMapping(value = "/plan")
     public List<OrderPlanVo> getPlan() {
         // TODO:
