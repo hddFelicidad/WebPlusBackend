@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TimerRepositroy extends JpaRepository<TimerPo, Integer> {
+public interface TimerRepository extends JpaRepository<TimerPo, Integer> {
 
 }

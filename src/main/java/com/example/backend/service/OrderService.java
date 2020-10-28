@@ -8,5 +8,5 @@ public interface OrderService {
 
     List<OrderVo> getAllOrders();
 
-    int insertOrder(OrderVo order);
+    void insertOrder(OrderVo order);
 }

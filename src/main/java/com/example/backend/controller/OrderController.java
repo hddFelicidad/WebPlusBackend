@@ -29,7 +29,7 @@ public class OrderController {
     @PostMapping()
     public void post(@RequestBody OrderVo entity) {
         // TODO: process POST request
-        int result = orderService.insertOrder(entity);
+        orderService.insertOrder(entity);
     }
 
     /**

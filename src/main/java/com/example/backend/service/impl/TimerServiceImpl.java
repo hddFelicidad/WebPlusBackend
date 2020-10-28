@@ -2,7 +2,7 @@ package com.example.backend.service.impl;
 
 import java.sql.Timestamp;
 
-import com.example.backend.data.TimerRepositroy;
+import com.example.backend.data.TimerRepository;
 import com.example.backend.po.TimerPo;
 import com.example.backend.service.TimerService;
 import com.example.backend.vo.TimerVo;
@@ -15,7 +15,7 @@ import lombok.var;
 @Service
 public class TimerServiceImpl implements TimerService {
     @Autowired
-    TimerRepositroy repository;
+    TimerRepository repository;
 
     @Override
     public void updateTimer(TimerVo vo) {
