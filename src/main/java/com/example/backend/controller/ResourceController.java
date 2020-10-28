@@ -1,30 +1,23 @@
 package com.example.backend.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import com.example.backend.vo.ResourceLoadVo;
 import com.example.backend.vo.ResourceOccupyVo;
 
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
 @RestController
-@RequestMapping(value = "resource")
+@RequestMapping
 public class ResourceController {
     /**
      * 查询从起始日期到终止日期每个资源的负载情况
-     * 
-     * @param startDate 起始日期
-     * @param endDate   终止日期
+     * @param date 包含起始日期和结束日期的数组
+     * @return
      */
-    @GetMapping(value = "/load")
-    public List<ResourceLoadVo> getLoad(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+    @PostMapping(value = "/percent")
+    public List<ResourceLoadVo> getLoad(@RequestBody Map<String, String> date) {
         // TODO:
         return null;
     }
@@ -32,8 +25,8 @@ public class ResourceController {
     /**
      * 获取指定日期内每个资源的占用情况
      */
-    @GetMapping(value = "/occupy")
-    public List<ResourceOccupyVo> getOccupy(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+    @GetMapping(value = "/resource-{date_str}")
+    public List<ResourceOccupyVo> getOccupy(@PathVariable("date_str") String date) {
         // TODO:
         return null;
     }

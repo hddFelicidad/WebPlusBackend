@@ -1,9 +1,5 @@
 package com.example.backend.vo;
 
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,27 +8,31 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ResourceOccupyVo {
-    /** 资源Id */
-    String id;
+    /** 对象Id */
+    Integer id;
 
     /** 资源名称 */
-    String name;
+    String resource;
 
-    /** 资源类型 */
-    String type;
+    /** 资源使用率 */
+    String percent;
 
-    /** 起始时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
-    Date startTime;
+    /** 开始时间，格式为yyyy-MM-dd HH:mm */
+    String start_date;
 
-    /** 终止时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
-    Date endTime;
+    /** 持续时间 */
+    String duration;
 
-    /** 资源在起始时间到终止时间中正在处理的产品Id */
-    String productId;
+    /** 产品名称 */
+    String text;
 
-    /** 资源在起始时间到终止时间中正在处理的产品所属的订单Id */
-    String orderId;
+    /** 产品颜色 */
+    String color;
+
+    /** 产品id */
+    String product_id;
+
+    /** 占用资源 */
+    int parent;
 
 }
