@@ -19,7 +19,7 @@ public class ScheduleInputDto {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class Group {
+    public static class Group {
         private String id;
         private String name;
         private Integer memberCount;
@@ -32,7 +32,7 @@ public class ScheduleInputDto {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class Machine {
+    public static class Machine {
         private String id;
         private String name;
         private String machineId;
@@ -41,7 +41,7 @@ public class ScheduleInputDto {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class Order {
+    public static class Order {
         private String id;
         private String name;
         /**

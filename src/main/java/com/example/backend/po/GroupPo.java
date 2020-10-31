@@ -14,11 +14,11 @@ import javax.persistence.*;
 public class GroupPo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer groupId;
+    Integer id;
 
     String groupName;
 
-    String leaderName;
+    String groupId;
 
     Integer memberCount;
 

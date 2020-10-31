@@ -19,5 +19,4 @@ public class MachinePo {
     String machineName;
 
     String machineId;
-
 }
