@@ -30,22 +30,27 @@ public class ScheduleServiceImpl implements ScheduleService {
     private SolverManager<SubOrderSchedule, UUID> solverManager;
 
     private ScheduleInputDto currentInput = null;
+    private List<ScheduleInputDto.Order> urgentOrders;
+    private List<Date> urgentOrderInsertTimes;
     private SolverJob<SubOrderSchedule, UUID> solverJob = null;
-    private ScheduleOutputDto outputDto = null;
+    // TODO: 持久化
+    private ScheduleOutputDto solutionDto = null;
 
     @Override
     public void schedule(ScheduleInputDto input) {
         currentInput = input;
+        urgentOrders = new ArrayList<>();
+        urgentOrderInsertTimes = new ArrayList<>();
         solverJob = null;
-        outputDto = null;
+        solutionDto = null;
         scheduleInternal(input);
     }
 
     @Override
     public ScheduleOutputDto tryGetScheduleOutput() {
         // 已经被返回过
-        if (outputDto != null)
-            return outputDto;
+        if (solutionDto != null)
+            return solutionDto;
         // 已经解析完成
         if (solverJob.getSolverStatus() == SolverStatus.NOT_SOLVING)
             return waitForScheduleOutput();
@@ -60,8 +65,25 @@ public class ScheduleServiceImpl implements ScheduleService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // TODO: 保存排程结果
-        return createDto(solution);
+        // 保存排程结果
+        solutionDto = createDto(solution);
+        // 持久化
+        saveSolution();
+        return solutionDto;
+    }
+
+    @Override
+    public boolean scheduleInsertUrgentOrder(Date insertTime, com.example.backend.dto.ScheduleInputDto.Order order) {
+        urgentOrders.add(order);
+        urgentOrderInsertTimes.add(insertTime);
+        // 如果上一次排程任务尚未结束 直接失败
+        if (solverJob.getSolverStatus() != SolverStatus.NOT_SOLVING)
+            return false;
+
+        // 确保上一次排程的结果被保存在成员变量中
+        waitForScheduleOutput();
+        // TODO: 重新排程以优先完成新订单
+        return true;
     }
 
     private TimeInterval createTimeInterval(TimeIntervalDto dto) {
@@ -134,7 +156,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         solverJob = solverManager.solve(problemId, schedule);
     }
 
-    private ScheduleOutputDto createDto(SubOrderSchedule resolution) {
+    private ScheduleOutputDto createDto(SubOrderSchedule solution) {
         // 把排程结果转换为Dto
         List<ScheduleOutputDto.Order> outputOrders = new ArrayList<>(currentInput.getOrders().size());
         HashMap<String, ScheduleOutputDto.Order> orderMap = new HashMap<>();
@@ -147,7 +169,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             outputOrders.add(outputOrder);
             orderMap.put(orderId, outputOrder);
         }
-        for (SubOrder subOrder : resolution.getSubOrderList()) {
+        for (SubOrder subOrder : solution.getSubOrderList()) {
             String orderId = subOrder.getOrderId();
             ScheduleOutputDto.Order outputOrder = orderMap.get(orderId);
             Date subOrderStartTime = new Date(
@@ -159,4 +181,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         return res;
     }
 
+    void saveSolution() {
+        // TODO: 保存当前的排程结果
+    }
 }
