@@ -1,4 +1,4 @@
-package com.example.backend.util;
+package com.example.backend.dto;
 
 import java.util.Date;
 import java.util.List;
@@ -10,12 +10,33 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Deprecated()
-public class ScheduleInputData {
+public class ScheduleInputDto {
     private Date startTime;
     private List<Group> groups;
     private List<Machine> machines;
     private List<Order> orders;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public class Group {
+        private String id;
+        private String name;
+        private Integer memberCount;
+        /**
+         * 一天之内的所有工作时间段
+         */
+        private List<TimeIntervalDto> workIntervals;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public class Machine {
+        private String id;
+        private String name;
+        private String machineId;
+    }
 
     @Data
     @AllArgsConstructor

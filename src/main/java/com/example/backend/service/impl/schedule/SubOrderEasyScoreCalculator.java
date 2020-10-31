@@ -1,4 +1,4 @@
-package com.example.backend.util;
+package com.example.backend.service.impl.schedule;
 
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.impl.score.director.easy.EasyScoreCalculator;

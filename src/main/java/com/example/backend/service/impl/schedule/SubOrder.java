@@ -1,13 +1,16 @@
-package com.example.backend.util;
+package com.example.backend.service.impl.schedule;
 
 import java.util.List;
+
+import org.optaplanner.core.api.domain.entity.PlanningEntity;
+import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@Deprecated()
+@PlanningEntity
 public class SubOrder {
     private String id;
     private String orderId;
@@ -16,13 +19,17 @@ public class SubOrder {
     private List<String> availableMachineTypeIdList;
     private Integer deadLineTimeGrain;
 
+    @PlanningVariable(valueRangeProviderRefs = "groupRange")
     private Group group;
 
+    @PlanningVariable(valueRangeProviderRefs = "machineRange")
     private Machine machine;
 
+    @PlanningVariable(valueRangeProviderRefs = "timeGrainRange")
     private Integer timeGrain;
 
-    public SubOrder(String id, String orderId, Integer needHour, List<String> availableGroupIdList, List<String> availableMachineTypeIdList, Integer deadLineTimeGrain) {
+    public SubOrder(String id, String orderId, Integer needHour, List<String> availableGroupIdList,
+            List<String> availableMachineTypeIdList, Integer deadLineTimeGrain) {
         this.id = id;
         this.orderId = orderId;
         this.needHour = needHour;

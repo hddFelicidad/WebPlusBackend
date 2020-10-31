@@ -1,4 +1,4 @@
-package com.example.backend.util;
+package com.example.backend.service.impl.schedule;
 
 import java.util.List;
 
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Deprecated()
 public class Group {
     private String id;
     private String name;
@@ -27,7 +26,8 @@ public class Group {
             durationHours -= 24 - startHourOfDay;
             startHourOfDay = 0;
         }
-        if (durationHours == 0) return true;
+        if (durationHours == 0)
+            return true;
         return canWorkIn(new TimeInterval(startHourOfDay, startHourOfDay + durationHours));
     }
 

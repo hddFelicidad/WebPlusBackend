@@ -1,4 +1,4 @@
-package com.example.backend.util;
+package com.example.backend.service.impl.schedule;
 
 import java.util.List;
 
@@ -36,7 +36,8 @@ public class SubOrderSchedule {
     @PlanningScore
     private HardSoftScore score;
 
-    public SubOrderSchedule(int startHourOfDay, List<Group> groupList, List<Machine> machineList, List<Integer> timeGrainList, List<SubOrder> subOrderList) {
+    public SubOrderSchedule(int startHourOfDay, List<Group> groupList, List<Machine> machineList,
+            List<Integer> timeGrainList, List<SubOrder> subOrderList) {
         this.startHourOfDay = startHourOfDay;
         this.groupList = groupList;
         this.machineList = machineList;
@@ -51,5 +52,4 @@ public class SubOrderSchedule {
     public HardSoftScore getScore() {
         return score;
     }
-
 }

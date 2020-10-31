@@ -1,4 +1,4 @@
-package com.example.backend.util;
+package com.example.backend.service.impl.schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Deprecated()
 public class Machine {
     private String id;
     private String name;

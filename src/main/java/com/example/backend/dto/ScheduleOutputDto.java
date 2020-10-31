@@ -1,4 +1,4 @@
-package com.example.backend.util;
+package com.example.backend.dto;
 
 import java.util.Date;
 import java.util.List;
@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Deprecated()
-public class ScheduleOutputData {
+public class ScheduleOutputDto {
     private List<Order> orders;
 
     @Data
@@ -20,7 +19,7 @@ public class ScheduleOutputData {
     public class Order {
         private String id;
         private String name;
-        private List<ScheduleOutputData.SubOrder> subOrders;
+        private List<SubOrder> subOrders;
     }
 
     @Data
