@@ -122,6 +122,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<ScheduleInputDto.Order> orders = input.getOrders();
 
         // 任务安排的时间范围为最迟的ddl与开始时间差值的10倍 以小时为单位
+        // TODO: 开始时间应当对齐时间粒度
         int factor = 10;
         Date startTime = input.getStartTime();
         Calendar startTimeCalendar = Calendar.getInstance();
