@@ -33,7 +33,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private List<ScheduleInputDto.Order> urgentOrders;
     private List<Date> urgentOrderInsertTimes;
     private SolverJob<SubOrderSchedule, UUID> solverJob = null;
-    // TODO: 持久化
+    // TODO: 持久化 应当在加载时就读取
     private ScheduleOutputDto solutionDto = null;
 
     @Override
@@ -47,7 +47,27 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
+    public boolean scheduleInsertUrgentOrder(Date insertTime, com.example.backend.dto.ScheduleInputDto.Order order) {
+        urgentOrders.add(order);
+        urgentOrderInsertTimes.add(insertTime);
+        // 如果上一次排程任务尚未结束 直接失败
+        if (solverJob.getSolverStatus() != SolverStatus.NOT_SOLVING)
+            return false;
+
+        // 确保上一次排程的结果被保存在成员变量中
+        waitForScheduleOutput();
+        solverJob = null;
+        solutionDto = null;
+        // TODO: 重新排程以优先完成新订单
+        schedule(currentInput);
+        return true;
+    }
+
+    @Override
     public ScheduleOutputDto tryGetScheduleOutput() {
+        // 当前没有排程任务
+        if (solverJob == null)
+            throw new RuntimeException("当前没有排程任务");
         // 已经被返回过
         if (solutionDto != null)
             return solutionDto;
@@ -70,20 +90,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 持久化
         saveSolution();
         return solutionDto;
-    }
-
-    @Override
-    public boolean scheduleInsertUrgentOrder(Date insertTime, com.example.backend.dto.ScheduleInputDto.Order order) {
-        urgentOrders.add(order);
-        urgentOrderInsertTimes.add(insertTime);
-        // 如果上一次排程任务尚未结束 直接失败
-        if (solverJob.getSolverStatus() != SolverStatus.NOT_SOLVING)
-            return false;
-
-        // 确保上一次排程的结果被保存在成员变量中
-        waitForScheduleOutput();
-        // TODO: 重新排程以优先完成新订单
-        return true;
     }
 
     private TimeInterval createTimeInterval(TimeIntervalDto dto) {
