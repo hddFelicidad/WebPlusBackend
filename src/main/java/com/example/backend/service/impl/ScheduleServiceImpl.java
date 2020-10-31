@@ -145,13 +145,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (ScheduleInputDto.Order order : orders) {
             int suborderIndex = 0;
             Date deadline = order.getDeadline();
+            int remainHours = order.getNeedHour();
             Integer deadlineTimeGrain = (int) ((deadline.getTime() - startTime.getTime()) / 1000L / 60L / 60L);
-            while (order.getNeedHour() > subOrderMaxNeedTime) {
+            while (remainHours > subOrderMaxNeedTime) {
                 subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), subOrderMaxNeedTime,
                         order.getAvailableGroupIdList(), order.getAvailableMachineTypeIdList(), deadlineTimeGrain));
-                order.setNeedHour(order.getNeedHour() - subOrderMaxNeedTime);
+                remainHours -= subOrderMaxNeedTime;
             }
-            subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), order.getNeedHour(),
+            subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), remainHours,
                     order.getAvailableGroupIdList(), order.getAvailableMachineTypeIdList(), deadlineTimeGrain));
         }
 
