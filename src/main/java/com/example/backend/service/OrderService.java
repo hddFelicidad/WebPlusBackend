@@ -1,12 +1,8 @@
 package com.example.backend.service;
 
-import com.example.backend.vo.OrderVo;
-
-import java.util.List;
+import com.example.backend.vo.ResponseVO;
 
 public interface OrderService {
 
-    List<OrderVo> getAllOrders();
-
-    void insertOrder(OrderVo order);
+    ResponseVO getOrderOccupy(String date);
 }
