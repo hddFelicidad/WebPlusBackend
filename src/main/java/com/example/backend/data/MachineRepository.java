@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MachineRepository extends JpaRepository<MachinePo, Integer> {
 
-    MachinePo findMachinePoByMachineId(int machineId);
+    MachinePo findMachinePoByMachineId(String machineId);
 }

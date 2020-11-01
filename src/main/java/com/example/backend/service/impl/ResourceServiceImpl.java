@@ -26,7 +26,7 @@ public class ResourceServiceImpl implements ResourceService {
     @Autowired
     LegacySystemService legacySystemService;
     @Autowired
-    OrderFilterUtil orderFilterUtil;
+    OrderUtil orderUtil;
     @Autowired
     CommonUtil commonUtil;
     @Autowired
@@ -72,6 +72,13 @@ public class ResourceServiceImpl implements ResourceService {
         return null;
     }
 
+    @Override
+    public ResponseVO getResourceLoadByMonth(Map<String, String> date, String productId) {
+        return null;
+    }
+
+
+
     public ResponseVO getResourceLoad(String s, String e) throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -111,7 +118,7 @@ public class ResourceServiceImpl implements ResourceService {
             Map<String, Object> resourceLoadInfo = new HashMap<>();
             resourceLoadInfo.put("date", currentDate);
             //获取当天的排程订单
-            List<ScheduleOutputDto.Order> orderList = orderFilterUtil.getOrderByDate(scheduleService.tryGetScheduleOutput(),
+            List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
                     currentStartTime, currentEndTime);
             if(orderList == null){
                 resourceLoadInfo.put("progress", new ArrayList<Integer>());
@@ -172,7 +179,7 @@ public class ResourceServiceImpl implements ResourceService {
 
         List<ResourceOccupyVo> resourceOccupyVoList = new ArrayList<>();
         //获取在起止时间内的排程订单
-        List<ScheduleOutputDto.Order> orderList = orderFilterUtil.getOrderByDate(scheduleService.tryGetScheduleOutput(),
+        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
                 startDate, endDate);
         if(orderList == null){
             return ResponseVO.buildFailure();
@@ -291,7 +298,7 @@ public class ResourceServiceImpl implements ResourceService {
 
         for(int i = 0; i < groupIdList.size(); i++){
             String groupId = groupIdList.get(i);
-            String groupName = groupRepository.findGroupPoByGroupId(Integer.parseInt(groupId)).getGroupName();
+            String groupName = groupRepository.findGroupPoByGroupId(groupId).getGroupName();
             String percent = Math.min(groupOccupyHourList.get(i), 12) / 12 * 100 + "%";
             String start = groupFirstOccupyTime.get(i);
             int duration = commonUtil.getDistanceHour(
@@ -312,7 +319,7 @@ public class ResourceServiceImpl implements ResourceService {
 
         for(int j = 0; j < machineIdList.size(); j++){
             String machineId = machineIdList.get(j);
-            String machineName = machineRepository.findMachinePoByMachineId(Integer.parseInt(machineId)).getMachineName();
+            String machineName = machineRepository.findMachinePoByMachineId(machineId).getMachineName();
             String percent = Math.min(machineOccupyHourList.get(j), 24) / 24 * 100 + "%";
             String start = machineFirstOccupyTime.get(j);
             int duration = commonUtil.getDistanceHour(

@@ -25,7 +25,7 @@ public class ResourceController {
 
     /**
      * 获取资源甘特图（按小时显示）
-     * @param date
+     * @param date 日期
      * @return
      */
     @GetMapping(value = "/resource-{date_str}")
@@ -35,12 +35,23 @@ public class ResourceController {
 
     /**
      * 获取资源甘特图（按天数显示）
-     * @param date
+     * @param date 起止时间
      * @return
      */
     @PostMapping(value = "/resource")
-    public ResponseVO getResourceByDay(@RequestBody Map<String, String> date){
+    public ResponseVO getResourceLoadByDay(@RequestBody Map<String, String> date){
         return resourceService.getResourceOccupyByDay(date);
     }
 
+    /**
+     * 获取资源甘特图（按月显示）
+     * @param date 起止时间
+     * @param productId 产品id
+     * @return
+     */
+    @PostMapping(value = "/product/{pid}")
+    public ResponseVO getResourceLoadByMonth(@RequestBody Map<String, String> date, @PathVariable("pid") String productId){
+        //TODO
+        return null;
+    }
 }
