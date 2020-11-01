@@ -8,17 +8,18 @@ import java.util.Random;
 
 @Component
 public class CommonUtil {
-
-    public boolean checkForDate(Date targetDate, Date startTime){
-        int timeDiff = getDistanceHour(targetDate, startTime);
-        return timeDiff >= 0 && timeDiff < 24;
-    }
-
     public int getDistanceHour(Date startTime, Date endTime){
         long start = startTime.getTime();
         long end = endTime.getTime();
         long diff = end - start;
         return (int) (diff / (60 * 60 * 1000));
+    }
+
+    public int getDistanceDay(Date startTime, Date endTime){
+        long start = startTime.getTime();
+        long end = endTime.getTime();
+        long diff = end - start;
+        return (int) (diff / (24 * 60 * 60 * 1000));
     }
 
     public Date addHour(Date date, int hour){

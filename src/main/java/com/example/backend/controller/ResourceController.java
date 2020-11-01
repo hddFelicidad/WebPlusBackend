@@ -20,8 +20,7 @@ public class ResourceController {
      */
     @PostMapping(value = "/percent")
     public ResponseVO getLoad(@RequestBody Map<String, String> date) {
-        // TODO:
-        return null;
+        return resourceService.getResourceLoadByDay(date);
     }
 
     /**

@@ -12,6 +12,7 @@ public class InitBean {
 
     @PostConstruct
     public void init(){
-        schedule.scheduleInit();
+        System.out.println("Init begin ...");
+//        schedule.scheduleInit();
     }
 }

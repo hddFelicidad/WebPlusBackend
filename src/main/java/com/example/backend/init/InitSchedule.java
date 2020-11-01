@@ -43,9 +43,8 @@ public class InitSchedule {
 
     public ScheduleInputDto getScheduleInput(){
         Date startTime = timerService.getTimer().getInitTime();
-        ScheduleInputDto input = new ScheduleInputDto(startTime,
+        return new ScheduleInputDto(startTime,
                 getGroupInput(), getMachineInput(), getOrderInput());
-        return null;
     }
 
     /**

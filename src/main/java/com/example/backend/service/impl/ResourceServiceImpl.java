@@ -60,6 +60,110 @@ public class ResourceServiceImpl implements ResourceService {
         return null;
     }
 
+    @Override
+    public ResponseVO getResourceLoadByDay(Map<String, String> date) {
+        String startDate = date.get("start_date") + " 00:00:00";
+        String endDate = date.get("end_date") + " 00:00:00";
+        try{
+            return getResourceLoad(startDate, endDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public ResponseVO getResourceLoad(String s, String e) throws ParseException {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date startDate = simpleDateFormat.parse(s);
+        Date endDate = simpleDateFormat.parse(e);
+        //起止时间内的天数
+        int dayDiff = commonUtil.getDistanceDay(startDate, endDate) + 1;
+
+        List<GroupPo> groupPoList = groupRepository.findAll();
+        List<MachinePo> machinePoList = machineRepository.findAll();
+        List<Map<String, String>> resourceList = new ArrayList<>();
+        List<String> resourceIdList = new ArrayList<>();
+        for(MachinePo machinePo: machinePoList){
+            Map<String, String> machineInfo = new HashMap<>();
+            machineInfo.put("id", "ln" + machinePo.getMachineId());
+            machineInfo.put("name", machinePo.getMachineName());
+            resourceList.add(machineInfo);
+            resourceIdList.add("ln" + machinePo.getMachineId());
+        }
+        for(GroupPo groupPo: groupPoList){
+            Map<String, String> groupInfo = new HashMap<>();
+            groupInfo.put("id", "hr" + groupPo.getGroupId());
+            groupInfo.put("name", groupPo.getGroupName());
+            resourceList.add(groupInfo);
+            resourceIdList.add("hr" + groupPo.getGroupId());
+        }
+
+        int groupLoad = 0;
+        int machineLoad = 0;
+
+        List<Map<String, Object>> tableData = new ArrayList<>();
+        for(int i = 0; i < dayDiff; i++){
+            Date currentStartTime = commonUtil.addHour(startDate, 24 * i);
+            Date currentEndTime = commonUtil.addHour(currentStartTime, 24);
+            //日期
+            String currentDate = format.format(currentStartTime);
+            Map<String, Object> resourceLoadInfo = new HashMap<>();
+            resourceLoadInfo.put("date", currentDate);
+            //获取当天的排程订单
+            List<ScheduleOutputDto.Order> orderList = orderFilterUtil.getOrderByDate(scheduleService.tryGetScheduleOutput(),
+                    currentStartTime, currentEndTime);
+            if(orderList == null){
+                resourceLoadInfo.put("progress", new ArrayList<Integer>());
+            }else{
+                List<Integer> resourceWorkHourList = new ArrayList<>();
+                for(int j = 0; j < resourceIdList.size(); j++){
+                    resourceWorkHourList.add(0);
+                }
+
+                for(ScheduleOutputDto.Order order: orderList){
+                    List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
+                    for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
+                        //判断是否为当天的子订单
+                        if(currentStartTime.before(subOrder.getStartTime()) && currentEndTime.after(subOrder.getStartTime())){
+                            int durationHour = subOrder.getDurationTimeInHour();
+                            List<String> occupyGroupIdList = subOrder.getGroupIdList();
+                            for(String occupyGroupId: occupyGroupIdList){
+                                int groupIndex = resourceIdList.indexOf("hr" + occupyGroupId);
+                                resourceWorkHourList.set(groupIndex, durationHour + resourceWorkHourList.get(groupIndex));
+                            }
+                            String occupyMachineId = subOrder.getMachineId();
+                            int machineIndex = resourceIdList.indexOf("ln" + occupyMachineId);
+                            resourceWorkHourList.set(machineIndex, durationHour + resourceWorkHourList.get(machineIndex));
+                        }
+                    }
+                }
+
+                List<Integer> resourceLoadList = new ArrayList<>();
+                for(int m = 0; m < machinePoList.size(); m++){
+                    resourceLoadList.add(resourceWorkHourList.get(m) / 24 * 100);
+                    machineLoad += resourceWorkHourList.get(m) / 24 * 100;
+                }
+                for(int n = machinePoList.size(); n < resourceIdList.size(); n++){
+                    resourceLoadList.add(resourceWorkHourList.get(n) / 12 * 100);
+                    groupLoad += resourceWorkHourList.get(n) / 12 * 100;
+                }
+                resourceLoadInfo.put("progress", resourceLoadList);
+            }
+            tableData.add(resourceLoadInfo);
+        }
+
+        machineLoad = machineLoad / dayDiff / machinePoList.size();
+        groupLoad = groupLoad / dayDiff / groupPoList.size();
+
+        Map<String, Object> content = new HashMap<>();
+        content.put("human_percent", groupLoad);
+        content.put("device_percent", machineLoad);
+        content.put("resource_list", resourceList);
+        content.put("table_data", tableData);
+
+        return ResponseVO.buildSuccess(content);
+    }
 
     public ResponseVO getResourceOccupy(String s, String e) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -188,7 +292,7 @@ public class ResourceServiceImpl implements ResourceService {
         for(int i = 0; i < groupIdList.size(); i++){
             String groupId = groupIdList.get(i);
             String groupName = groupRepository.findGroupPoByGroupId(Integer.parseInt(groupId)).getGroupName();
-            String percent = Math.min(groupOccupyHourList.get(i), 24) / 24 * 100 + "%";
+            String percent = Math.min(groupOccupyHourList.get(i), 12) / 12 * 100 + "%";
             String start = groupFirstOccupyTime.get(i);
             int duration = commonUtil.getDistanceHour(
                     simpleDateFormat.parse(groupFirstOccupyTime.get(i)),
