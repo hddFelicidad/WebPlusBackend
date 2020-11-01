@@ -43,10 +43,5 @@ public class ScheduleOutputDto {
          * 处理该子订单时所使用的机器Id
          */
         private String machineId;
-
-        @Deprecated
-        public String getGroupId() {
-            return null;
-        }
     }
 }

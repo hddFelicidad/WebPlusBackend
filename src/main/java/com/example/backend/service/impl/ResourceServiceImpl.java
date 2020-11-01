@@ -70,6 +70,9 @@ public class ResourceServiceImpl implements ResourceService {
         //获取在起止时间内的排程订单
         List<ScheduleOutputDto.Order> orderList = orderFilterUtil.getOrderByDate(scheduleService.tryGetScheduleOutput(),
                 startDate, endDate);
+        if(orderList == null){
+            return ResponseVO.buildFailure();
+        }
         //一些初始化工作
         List<GroupPo> groupPoList = groupRepository.findAll();
         List<MachinePo> machinePoList = machineRepository.findAll();
@@ -119,31 +122,42 @@ public class ResourceServiceImpl implements ResourceService {
                     int durationTime = subOrder.getDurationTimeInHour();
                     //子订单结束时间
                     Date end_date = commonUtil.addHour(start_date, durationTime);
-                    //子订单占用人力资源Id
-                    String groupId = subOrder.getGroupId();
-                    //子订单占用机器资源Id
-                    String machineId = subOrder.getMachineId();
-                    //获取人力资源、机器资源对应下标
-                    int groupIndex = groupIdList.indexOf(groupId);
-                    int machineIndex = machineIdList.indexOf(machineId);
-                    //更新对应人力资源占用时间
-                    groupOccupyHourList.set(groupIndex, groupOccupyHourList.get(groupIndex) + durationTime);
-                    //更新对应人力资源第一次被占用的时间
-                    if(groupFirstOccupyTime.get(groupIndex).equals("")){
-                        groupFirstOccupyTime.set(groupIndex, simpleDateFormat.format(start_date));
-                    }else{
-                        if(start_date.before(simpleDateFormat.parse(groupFirstOccupyTime.get(groupIndex)))){
+
+                    //子订单占用人力资源id列表
+                    List<String> occupyGroupIdList = subOrder.getGroupIdList();
+                    for(String occupyGroupId: occupyGroupIdList){
+                        //获取人力资源对应下标
+                        int groupIndex = groupIdList.indexOf(occupyGroupId);
+                        //更新对应人力资源占用时间
+                        groupOccupyHourList.set(groupIndex, groupOccupyHourList.get(groupIndex) + durationTime);
+                        //更新对应人力资源第一次被占用的时间
+                        if(groupFirstOccupyTime.get(groupIndex).equals("")){
                             groupFirstOccupyTime.set(groupIndex, simpleDateFormat.format(start_date));
+                        }else{
+                            if(start_date.before(simpleDateFormat.parse(groupFirstOccupyTime.get(groupIndex)))){
+                                groupFirstOccupyTime.set(groupIndex, simpleDateFormat.format(start_date));
+                            }
                         }
-                    }
-                    //更新对应人力资源最后一次被占用的时间
-                    if(groupLastOccupyTime.get(groupIndex).equals("")){
-                        groupLastOccupyTime.set(groupIndex, simpleDateFormat.format(end_date));
-                    }else{
-                        if(end_date.after(simpleDateFormat.parse(groupLastOccupyTime.get(groupIndex)))){
+                        //更新对应人力资源最后一次被占用的时间
+                        if(groupLastOccupyTime.get(groupIndex).equals("")){
                             groupLastOccupyTime.set(groupIndex, simpleDateFormat.format(end_date));
+                        }else{
+                            if(end_date.after(simpleDateFormat.parse(groupLastOccupyTime.get(groupIndex)))){
+                                groupLastOccupyTime.set(groupIndex, simpleDateFormat.format(end_date));
+                            }
                         }
+                        ResourceOccupyVo productGroupOccupy = new ResourceOccupyVo(productIdBegin, "", "",
+                                simpleDateFormat.format(start_date), String.valueOf(durationTime * 60),
+                                itemName, color, itemId, groupIndex + groupIdBegin);
+                        productIdBegin++;
+                        resourceOccupyVoList.add(productGroupOccupy);
                     }
+
+
+                    //子订单占用机器资源Id
+                    String occupyMachineId = subOrder.getMachineId();
+                    //获取机器资源对应下标
+                    int machineIndex = machineIdList.indexOf(occupyMachineId);
                     //更新对应机器资源占用时间
                     machineOccupyHourList.set(machineIndex, machineOccupyHourList.get(machineIndex) + durationTime);
                     //更新对应机器资源第一次被占用的时间
@@ -158,19 +172,14 @@ public class ResourceServiceImpl implements ResourceService {
                     if(machineLastOccupyTime.get(machineIndex).equals("")){
                         machineLastOccupyTime.set(machineIndex, simpleDateFormat.format(end_date));
                     }else{
-                        if(end_date.after(simpleDateFormat.parse(groupLastOccupyTime.get(groupIndex)))){
+                        if(end_date.after(simpleDateFormat.parse(machineLastOccupyTime.get(machineIndex)))){
                             machineLastOccupyTime.set(machineIndex, simpleDateFormat.format(end_date));
                         }
                     }
-
-                    ResourceOccupyVo productGroupOccupy = new ResourceOccupyVo(productIdBegin, "", "",
-                            simpleDateFormat.format(start_date), String.valueOf(durationTime * 60),
-                            itemName, color, itemId, groupIndex + groupIdBegin);
                     ResourceOccupyVo productMachineOccupy = new ResourceOccupyVo(productIdBegin + 1, "", "",
                             simpleDateFormat.format(start_date), String.valueOf(durationTime * 60),
                             itemName, color, itemId, machineIndex + machineIdBegin);
-                    productIdBegin += 2;
-                    resourceOccupyVoList.add(productGroupOccupy);
+                    productIdBegin++;
                     resourceOccupyVoList.add(productMachineOccupy);
                 }
             }

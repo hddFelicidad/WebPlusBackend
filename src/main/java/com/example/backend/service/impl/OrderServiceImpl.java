@@ -48,6 +48,9 @@ public class OrderServiceImpl implements OrderService {
         //获取在起止时间内的排程订单
         List<ScheduleOutputDto.Order> orderList = orderFilterUtil.getOrderByDate(scheduleService.tryGetScheduleOutput(),
                 startDate, endDate);
+        if(orderList == null){
+            return ResponseVO.buildFailure();
+        }
         //一些初始化
         Map<String, Object> content = new HashMap<>();
         Map<String, Object> tasks = new HashMap<>();
