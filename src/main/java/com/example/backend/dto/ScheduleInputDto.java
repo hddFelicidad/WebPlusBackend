@@ -49,6 +49,7 @@ public class ScheduleInputDto {
          * 完成整个订单需要的总时间
          */
         private Integer needHour;
+        private Integer needMemberCount;
         /**
          * 可用的小组的Id列表
          */

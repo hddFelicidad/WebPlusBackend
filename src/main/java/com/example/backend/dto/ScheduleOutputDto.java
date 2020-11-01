@@ -36,12 +36,17 @@ public class ScheduleOutputDto {
          */
         private Integer durationTimeInHour;
         /**
-         * 处理该子订单的小组Id
+         * 处理该子订单的各个小组的Id
          */
-        private String groupId;
+        private List<String> groupIdList;
         /**
          * 处理该子订单时所使用的机器Id
          */
         private String machineId;
+
+        @Deprecated
+        public String getGroupId() {
+            return null;
+        }
     }
 }

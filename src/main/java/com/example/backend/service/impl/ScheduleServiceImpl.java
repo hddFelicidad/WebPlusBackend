@@ -123,7 +123,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         // 任务安排的时间范围为最迟的ddl与开始时间差值的10倍 以小时为单位
         // TODO: 开始时间应当对齐时间粒度
-        int factor = 10;
+        int factor = 2;
         Date startTime = input.getStartTime();
         Calendar startTimeCalendar = Calendar.getInstance();
         startTimeCalendar.setTime(startTime);
@@ -149,11 +149,13 @@ public class ScheduleServiceImpl implements ScheduleService {
             Integer deadlineTimeGrain = (int) ((deadline.getTime() - startTime.getTime()) / 1000L / 60L / 60L);
             while (remainHours > subOrderMaxNeedTime) {
                 subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), subOrderMaxNeedTime,
-                        order.getAvailableGroupIdList(), order.getAvailableMachineTypeIdList(), deadlineTimeGrain));
+                        order.getNeedMemberCount(), order.getAvailableGroupIdList(),
+                        order.getAvailableMachineTypeIdList(), deadlineTimeGrain));
                 remainHours -= subOrderMaxNeedTime;
             }
             subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), remainHours,
-                    order.getAvailableGroupIdList(), order.getAvailableMachineTypeIdList(), deadlineTimeGrain));
+                    order.getNeedMemberCount(), order.getAvailableGroupIdList(), order.getAvailableMachineTypeIdList(),
+                    deadlineTimeGrain));
         }
 
         // 排程
@@ -183,7 +185,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             Date subOrderStartTime = new Date(
                     currentInput.getStartTime().getTime() + subOrder.getTimeGrain() * 60L * 60L * 1000L);
             ScheduleOutputDto.SubOrder outputSubOrder = res.new SubOrder(subOrder.getId(), subOrderStartTime,
-                    subOrder.getNeedHour(), subOrder.getGroup().getId(), subOrder.getMachine().getId());
+                    subOrder.getNeedHour(), subOrder.getGroupIdList(), subOrder.getMachine().getId());
             outputOrder.getSubOrders().add(outputSubOrder);
         }
         return res;
