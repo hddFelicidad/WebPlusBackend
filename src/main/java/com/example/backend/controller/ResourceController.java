@@ -1,5 +1,7 @@
 package com.example.backend.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping(value = "resource")
+@Api(value = "资源管理类")
 public class ResourceController {
     /**
      * 查询从起始日期到终止日期每个资源的负载情况
@@ -23,6 +26,7 @@ public class ResourceController {
      * @param endDate   终止日期
      */
     @GetMapping(value = "/load")
+    @ApiOperation(value = "查询资源负载情况" ,notes = "查询从起始日期到终止日期的每个资源")
     public List<ResourceLoadVo> getLoad(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
         // TODO:
@@ -33,6 +37,7 @@ public class ResourceController {
      * 获取指定日期内每个资源的占用情况
      */
     @GetMapping(value = "/occupy")
+    @ApiOperation(value = "获取资源占用情况" ,notes = "获取指定日期内的每个资源")
     public List<ResourceOccupyVo> getOccupy(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
         // TODO:
         return null;

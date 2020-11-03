@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <!--配置项：配置控制台的输出格式-->
+    <appender name="consoleLog" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout"> <!--展示配置-->
+            <!--控制台输出格式-->
+            <pattern>%highlight([%-5level]) %cyan(%d{yyyy-MM-dd#HH:mm:ss.SSS}) %yellow([Thread:%thread]) %magenta([Logger:%logger]) -> %msg%n</pattern>
+        </layout>
+    </appender>
+
+    <!--配置项：配置文件的输出 针对info和log 输出到不同的文件-->
+    <appender name="fileInfoLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--根据范围过滤-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %contextName [%thread] %-5level %logger{36}  - %msg%n</pattern>
+        </encoder>
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 按天归档，如果按小时后面加-hh -->
+            <!--路径-->
+            <fileNamePattern>log/history/info.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+
+            <!--<fileNamePattern>log/tomcat/myproject/info.%d.log</fileNamePattern>-->
+        </rollingPolicy>
+    </appender>
+
+    <!--配置项：配置文件的输出 针对不同级别 输出到不同的文件-->
+    <appender name="fileErrorLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--根据范围过滤-->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <!--设置error配置项只输出error级别的日志-->
+            <level>ERROR</level>
+        </filter>
+
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %highlight(%-5level) %yellow(at %class.%method) \(%file:%line\)  - %msg%n</pattern>
+        </encoder>
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--路径-->
+            <fileNamePattern>log/history/error.%d{yyyy-MM-dd}.log</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+
+    <!--应用到那里 root：这个项目都适用-->
+    <root level="info">
+        <appender-ref ref="consoleLog"/>
+        <appender-ref ref="fileInfoLog"/>
+        <appender-ref ref="fileErrorLog"/>
+    </root>
+</configuration>
