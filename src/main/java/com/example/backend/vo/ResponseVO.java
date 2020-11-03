@@ -31,4 +31,11 @@ public class ResponseVO {
         response.setRet(false);
         return response;
     }
+
+    public static ResponseVO buildFailure(Object content){
+        ResponseVO response = new ResponseVO();
+        response.setContent(content);
+        response.setRet(false);
+        return response;
+    }
 }

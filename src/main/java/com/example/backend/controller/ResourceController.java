@@ -42,16 +42,4 @@ public class ResourceController {
     public ResponseVO getResourceLoadByDay(@RequestBody Map<String, String> date){
         return resourceService.getResourceOccupyByDay(date);
     }
-
-    /**
-     * 获取资源甘特图（按月显示）
-     * @param date 起止时间
-     * @param productId 产品id
-     * @return
-     */
-    @PostMapping(value = "/product/{pid}")
-    public ResponseVO getResourceLoadByMonth(@RequestBody Map<String, String> date, @PathVariable("pid") String productId){
-        //TODO
-        return null;
-    }
 }

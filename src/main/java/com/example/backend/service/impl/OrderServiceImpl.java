@@ -76,17 +76,17 @@ public class OrderServiceImpl implements OrderService {
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
         List<ScheduleOutputDto.Order> orderListByProductId = orderUtil.getOrderByProductId(scheduleService.tryGetScheduleOutput().getOrders(), productId);
-        if(orderListByProductId == null){
-            return ResponseVO.buildFailure();
+        if(orderListByProductId.size() == 0){
+            return ResponseVO.buildFailure("没有该产品对应的订单");
         }
         List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(orderListByProductId, startDate, endDate);
-        if(orderList == null){
-            return ResponseVO.buildFailure();
+        if(orderList.size() == 0){
+            return ResponseVO.buildFailure("起止时间内无正在处理的订单");
         }
 
         Map<String, Object> content = new HashMap<>();
         //数据表里暂时没有产品名称
-        content.put("product_name", productId);
+        content.put("product_name", "产品" + productId);
         Map<String, Object> tasks = new HashMap<>();
         content.put("tasks", tasks);
 
@@ -103,31 +103,33 @@ public class OrderServiceImpl implements OrderService {
                 int durationHour = subOrder.getDurationTimeInHour();
                 Date startTime = subOrder.getStartTime();
                 if(startDate.before(startTime) && endDate.after(startTime)){
-                    Map<String, Object> data = new HashMap<>();
+                    Map<String, Object> machineData = new HashMap<>();
                     List<String> occupyGroupIdList = subOrder.getGroupIdList();
                     String occupyMachineId = subOrder.getMachineId();
 
                     ArrayList<Integer> groupTmp = new ArrayList<>();
                     for(String occupyGroupId: occupyGroupIdList){
+                        Map<String, Object> groupData = new HashMap<>();
                         String groupName = groupRepository.findGroupPoByGroupId(occupyGroupId).getGroupName();
-                        data.put("id", dataId);
-                        data.put("resource", groupName);
-                        data.put("start_date", simpleDateFormat.format(startTime));
-                        data.put("duration", durationHour * 60);
+                        groupData.put("id", dataId);
+                        groupData.put("resource", groupName);
+                        groupData.put("start_date", simpleDateFormat.format(startTime));
+                        groupData.put("duration", durationHour * 60);
                         groupTmp.add(dataId);
                         dataId++;
+                        dataList.add(groupData);
                     }
                     groupLinkList.add(groupTmp);
 
-                    String machineName = machineRepository.findMachinePoByMachineId(occupyMachineId).getMachineName();
-                    data.put("id", dataId);
-                    data.put("resource", machineName);
-                    data.put("start_date", simpleDateFormat.format(startTime));
-                    data.put("duration", durationHour * 60);
+                    String machineName = machineRepository.findMachinePosByMachineId(occupyMachineId).get(0).getMachineName();
+                    machineData.put("id", dataId);
+                    machineData.put("resource", machineName);
+                    machineData.put("start_date", simpleDateFormat.format(startTime));
+                    machineData.put("duration", durationHour * 60);
                     machineLinkList.add(dataId);
                     dataId++;
 
-                    dataList.add(data);
+                    dataList.add(machineData);
                 }
 
             }
@@ -169,8 +171,8 @@ public class OrderServiceImpl implements OrderService {
         //获取在起止时间内的排程订单
         List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
                 startDate, endDate);
-        if(orderList == null){
-            return ResponseVO.buildFailure();
+        if(orderList.size() == 0){
+            return ResponseVO.buildFailure("起止时间内无正在处理的订单");
         }
         //一些初始化
         Map<String, Object> content = new HashMap<>();
@@ -193,7 +195,7 @@ public class OrderServiceImpl implements OrderService {
             //暂时没有获取工艺的方法
             orderOccupy.setText("");
             //产品名称（数据表里暂时没有这一项）
-            orderOccupy.setName(orderPo.getItemId());
+            orderOccupy.setName("产品" + orderPo.getItemId());
             orderOccupy.setDeal_date(deadLine);
             //父任务数据项id
             int parentId = id;
@@ -231,8 +233,8 @@ public class OrderServiceImpl implements OrderService {
                     //暂时没有获取工艺的方法
                     subOrderOccupy.setText("");
                     //产品名称（数据表里暂时没有这一项）
-                    subOrderOccupy.setName(orderPo.getItemId());
-                    subOrderOccupy.setDeal_date(format.format(startTime));
+                    subOrderOccupy.setName("产品" + orderPo.getItemId());
+                    subOrderOccupy.setDeal_date(format.format(endTime));
                     subOrderOccupy.setExpc_date(format.format(endTime));
                     subOrderOccupy.setParent(parentId);
                     id++;
@@ -257,7 +259,7 @@ public class OrderServiceImpl implements OrderService {
         tasks.put("data", orderOccupyVoList);
         tasks.put("links", links);
         content.put("tasks", tasks);
-        content.put("delivery_rate", deliveryCount / orderList.size() + "%");
+        content.put("delivery_rate", deliveryCount * 100 / orderList.size() + "%");
 
         return ResponseVO.buildSuccess(content);
     }

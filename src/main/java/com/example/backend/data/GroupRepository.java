@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface GroupRepository extends JpaRepository<GroupPo, Integer> {
 
     GroupPo findGroupPoByGroupId(String groupId);
+
+    GroupPo findGroupPoByGroupName(String groupName);
 }

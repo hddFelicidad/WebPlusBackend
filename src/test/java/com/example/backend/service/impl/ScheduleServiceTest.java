@@ -22,43 +22,43 @@ public class ScheduleServiceTest {
     void syncSchedule() {
         ScheduleInputDto input = new ScheduleInputDto();
         List<ScheduleInputDto.Group> groups = new ArrayList<>();
-        groups.add(new ScheduleInputDto.Group("1", "组一", 5, Arrays.asList(new TimeIntervalDto(7, 19))));
-        groups.add(new ScheduleInputDto.Group("2", "组二", 5, Arrays.asList(new TimeIntervalDto(7, 19))));
+        groups.add(new ScheduleInputDto.Group("5", "5组-童玲 (5)", 5, Arrays.asList(new TimeIntervalDto(7, 19))));
+        groups.add(new ScheduleInputDto.Group("9", "9组-张敏（5）", 5, Arrays.asList(new TimeIntervalDto(7, 19))));
         groups.add(
-                new ScheduleInputDto.Group("3", "组三", 5, Arrays.asList(new TimeIntervalDto(19, 24), new TimeIntervalDto(0, 7))));
+                new ScheduleInputDto.Group("1", "1组-彭慧 (5)", 5, Arrays.asList(new TimeIntervalDto(19, 24), new TimeIntervalDto(0, 7))));
         groups.add(
-                new ScheduleInputDto.Group("4", "组四", 5, Arrays.asList(new TimeIntervalDto(19, 24), new TimeIntervalDto(0, 7))));
+                new ScheduleInputDto.Group("12", "12组-姚兰（5）", 5, Arrays.asList(new TimeIntervalDto(19, 24), new TimeIntervalDto(0, 7))));
         groups.add(
-                new ScheduleInputDto.Group("5", "组五", 5, Arrays.asList(new TimeIntervalDto(19, 24), new TimeIntervalDto(0, 7))));
-        groups.add(new ScheduleInputDto.Group("6", "组六", 6, Arrays.asList(new TimeIntervalDto(7, 19))));
-        groups.add(new ScheduleInputDto.Group("7", "组七", 6, Arrays.asList(new TimeIntervalDto(7, 19))));
+                new ScheduleInputDto.Group("15", "15组-李娟（5）", 5, Arrays.asList(new TimeIntervalDto(19, 24), new TimeIntervalDto(0, 7))));
+        groups.add(new ScheduleInputDto.Group("3", "3组-李翠 (4)", 4, Arrays.asList(new TimeIntervalDto(7, 19))));
+        groups.add(new ScheduleInputDto.Group("14", "14组-周  清（4）", 4, Arrays.asList(new TimeIntervalDto(7, 19))));
         groups.add(
-                new ScheduleInputDto.Group("8", "组八", 5, Arrays.asList(new TimeIntervalDto(19, 24), new TimeIntervalDto(0, 7))));
-        groups.add(new ScheduleInputDto.Group("9", "组九", 5, Arrays.asList(new TimeIntervalDto(7, 19))));
+                new ScheduleInputDto.Group("16", "16组-朱美（4）", 4, Arrays.asList(new TimeIntervalDto(19, 24), new TimeIntervalDto(0, 7))));
+        groups.add(new ScheduleInputDto.Group("40", "40组-高燕（5）", 5, Arrays.asList(new TimeIntervalDto(7, 19))));
         List<ScheduleInputDto.Machine> machines = new ArrayList<>();
-        machines.add(new ScheduleInputDto.Machine("1", "line1", "1"));
-        machines.add(new ScheduleInputDto.Machine("2", "line1", "1"));
-        machines.add(new ScheduleInputDto.Machine("3", "line1", "1"));
-        machines.add(new ScheduleInputDto.Machine("4", "line2", "2"));
-        machines.add(new ScheduleInputDto.Machine("5", "line2", "2"));
-        machines.add(new ScheduleInputDto.Machine("6", "line3", "3"));
-        machines.add(new ScheduleInputDto.Machine("7", "line3", "3"));
-        machines.add(new ScheduleInputDto.Machine("8", "line3", "3"));
-        machines.add(new ScheduleInputDto.Machine("9", "line3", "3"));
-        machines.add(new ScheduleInputDto.Machine("10", "line4", "4"));
+        machines.add(new ScheduleInputDto.Machine("1", "line01", "1"));
+        machines.add(new ScheduleInputDto.Machine("2", "line01", "1"));
+        machines.add(new ScheduleInputDto.Machine("3", "line01", "1"));
+        machines.add(new ScheduleInputDto.Machine("4", "line02", "2"));
+        machines.add(new ScheduleInputDto.Machine("5", "line02", "2"));
+        machines.add(new ScheduleInputDto.Machine("6", "line02", "2"));
+        machines.add(new ScheduleInputDto.Machine("7", "line03", "3"));
+        machines.add(new ScheduleInputDto.Machine("8", "line03", "3"));
+        machines.add(new ScheduleInputDto.Machine("9", "line03", "3"));
+        machines.add(new ScheduleInputDto.Machine("10", "line04", "4"));
         List<ScheduleInputDto.Order> orders = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         try {
-            input.setStartTime(dateFormat.parse("2020-10-26 07"));
+            input.setStartTime(dateFormat.parse("2020-11-3 07"));
             input.setGroups(groups);
             input.setMachines(machines);
             input.setOrders(orders);
-            orders.add(new ScheduleInputDto.Order("1", "订单一", 8, 8, Arrays.asList("1", "2", "3", "4"), Arrays.asList("1", "2"),
-                    dateFormat.parse("2020-10-27 08")));
-            orders.add(new ScheduleInputDto.Order("2", "订单二", 8, 8, Arrays.asList("6", "7", "8", "9"), Arrays.asList("2", "3"),
-                    dateFormat.parse("2020-10-27 15")));
-            orders.add(new ScheduleInputDto.Order("3", "订单三", 8, 11, Arrays.asList("3", "5", "8", "9"), Arrays.asList("1", "3", "4"),
-                    dateFormat.parse("2020-10-27 14")));
+            orders.add(new ScheduleInputDto.Order("413095", "订单413095", 8, 8, Arrays.asList("5", "9", "1", "12"), Arrays.asList("1", "2"),
+                    dateFormat.parse("2020-11-4 10")));
+            orders.add(new ScheduleInputDto.Order("414837", "订单414837", 8, 8, Arrays.asList("3", "14", "16", "40"), Arrays.asList("2", "3"),
+                    dateFormat.parse("2020-11-4 12")));
+            orders.add(new ScheduleInputDto.Order("416153", "订单416153", 8, 11, Arrays.asList("1", "15", "16", "40"), Arrays.asList("1", "3", "4"),
+                    dateFormat.parse("2020-11-4 14")));
             serviceImpl.schedule(input);
             ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
             System.out.println(output.getOrders().size());
