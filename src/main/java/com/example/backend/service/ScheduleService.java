@@ -19,7 +19,7 @@ public interface ScheduleService {
      * @param order      紧急订单
      * @return 如果此时上一次排程任务还没有完成 将会返回false 否则为true
      */
-    boolean scheduleInsertUrgentOrder(Date insertTime, ScheduleInputDto.Order order);
+    boolean scheduleInsertUrgentOrder(ScheduleInputDto input, Date insertTime, ScheduleInputDto.Order urgentOrder);
 
     /**
      * 尝试获取排程结果 该函数会立刻返回

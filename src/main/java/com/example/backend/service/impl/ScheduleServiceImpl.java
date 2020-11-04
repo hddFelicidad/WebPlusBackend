@@ -47,7 +47,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public boolean scheduleInsertUrgentOrder(Date insertTime, com.example.backend.dto.ScheduleInputDto.Order order) {
+    public boolean scheduleInsertUrgentOrder(ScheduleInputDto input, Date insertTime, ScheduleInputDto.Order order) {
         urgentOrders.add(order);
         urgentOrderInsertTimes.add(insertTime);
         // 如果上一次排程任务尚未结束 直接失败

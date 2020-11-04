@@ -45,6 +45,7 @@ public class ScheduleInputDto {
     public static class Order {
         private String id;
         private String name;
+        private Boolean urgent;
         /**
          * 完成整个订单需要的总时间
          */
