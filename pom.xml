@@ -78,7 +78,11 @@
 			<artifactId>druid</artifactId>
 			<version>${druid-version}</version>
 		</dependency>
-
+		<!--liquibase相关依赖-->
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
