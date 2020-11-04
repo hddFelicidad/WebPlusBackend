@@ -61,14 +61,19 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     @Override
-    public ResponseVO getResourceLoadByDay(Map<String, String> date) {
-        String startDate = date.get("start_date") + " 00:00:00";
-        String endDate = date.get("end_date") + " 00:00:00";
+    public ResponseVO getResourceLoadByDay(String startDate, String endDate) {
+        startDate += " 00:00:00";
+        endDate += " 00:00:00";
         try{
             return getResourceLoad(startDate, endDate);
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    @Override
+    public ResponseVO getResourceLoadByMonth(String startDate, String endDate) {
         return null;
     }
 
@@ -291,49 +296,51 @@ public class ResourceServiceImpl implements ResourceService {
         }
 
         for(int i = 0; i < groupIdList.size(); i++){
+            String groupId = groupIdList.get(i);
+            String groupName = groupRepository.findGroupPoByGroupId(groupId).getGroupName();
+            String percent = Math.min(groupOccupyHourList.get(i), 12) * 100 / 12 + "%";
+            String start = groupFirstOccupyTime.get(i);
+            int duration = 0;
             if(groupOccupyHourList.get(i) > 0){
-                String groupId = groupIdList.get(i);
-                String groupName = groupRepository.findGroupPoByGroupId(groupId).getGroupName();
-                String percent = Math.min(groupOccupyHourList.get(i), 12) * 100 / 12 + "%";
-                String start = groupFirstOccupyTime.get(i);
-                int duration = commonUtil.getDistanceHour(
+                duration = commonUtil.getDistanceHour(
                         simpleDateFormat.parse(groupFirstOccupyTime.get(i)),
-                        simpleDateFormat.parse(groupLastOccupyTime.get(i)));;
-                duration = Math.min(duration, 24);
-                ResourceOccupyVo groupOccupy = new ResourceOccupyVo();
-                groupOccupy.setId(groupIdBegin + i);
-                groupOccupy.setResource(groupName);
-                groupOccupy.setPercent(percent);
-                groupOccupy.setStart_date(start);
-                groupOccupy.setDuration(String.valueOf(60 * duration));
-                groupOccupy.setText("");
-                groupOccupy.setColor("darkturquoise");
-                groupOccupy.setProduct_id("");
-                resourceOccupyVoList.add(groupOccupy);
+                        simpleDateFormat.parse(groupLastOccupyTime.get(i)));
             }
+            duration = Math.min(duration, 24);
+            ResourceOccupyVo groupOccupy = new ResourceOccupyVo();
+            groupOccupy.setId(groupIdBegin + i);
+            groupOccupy.setResource(groupName);
+            groupOccupy.setPercent(percent);
+            groupOccupy.setStart_date(start);
+            groupOccupy.setDuration(String.valueOf(60 * duration));
+            groupOccupy.setText("");
+            groupOccupy.setColor("darkturquoise");
+            groupOccupy.setProduct_id("");
+            resourceOccupyVoList.add(groupOccupy);
         }
 
         for(int j = 0; j < machineIdList.size(); j++){
+            String machineId = machineIdList.get(j);
+            String machineName = machineRepository.findMachinePosByMachineId(machineId).get(0).getMachineName();
+            String percent = Math.min(machineOccupyHourList.get(j), 24) * 100 / 24 + "%";
+            String start = machineFirstOccupyTime.get(j);
+            int duration = 0;
             if(machineOccupyHourList.get(j) > 0){
-                String machineId = machineIdList.get(j);
-                String machineName = machineRepository.findMachinePosByMachineId(machineId).get(0).getMachineName();
-                String percent = Math.min(machineOccupyHourList.get(j), 24) * 100 / 24 + "%";
-                String start = machineFirstOccupyTime.get(j);
-                int duration = commonUtil.getDistanceHour(
+                duration = commonUtil.getDistanceHour(
                         simpleDateFormat.parse(machineFirstOccupyTime.get(j)),
                         simpleDateFormat.parse(machineLastOccupyTime.get(j)));
-                duration = Math.min(duration, 24);
-                ResourceOccupyVo machineOccupy = new ResourceOccupyVo();
-                machineOccupy.setId(machineIdBegin + j);
-                machineOccupy.setResource(machineName);
-                machineOccupy.setPercent(percent);
-                machineOccupy.setStart_date(start);
-                machineOccupy.setDuration(String.valueOf(60 * duration));
-                machineOccupy.setText("");
-                machineOccupy.setColor("darkturquoise");
-                machineOccupy.setProduct_id("");
-                resourceOccupyVoList.add(machineOccupy);
             }
+            duration = Math.min(duration, 24);
+            ResourceOccupyVo machineOccupy = new ResourceOccupyVo();
+            machineOccupy.setId(machineIdBegin + j);
+            machineOccupy.setResource(machineName);
+            machineOccupy.setPercent(percent);
+            machineOccupy.setStart_date(start);
+            machineOccupy.setDuration(String.valueOf(60 * duration));
+            machineOccupy.setText("");
+            machineOccupy.setColor("darkturquoise");
+            machineOccupy.setProduct_id("");
+            resourceOccupyVoList.add(machineOccupy);
         }
         return ResponseVO.buildSuccess(resourceOccupyVoList);
     }
