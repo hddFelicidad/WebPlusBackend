@@ -16,6 +16,7 @@
 
 	<properties>
 		<java.version>8</java.version>
+		<druid-version>1.2.2</druid-version>
 	</properties>
 
 	<dependencies>
@@ -60,8 +61,6 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 		</dependency>
-
-		<!--                       -->
 		<!--Swagger相关依赖-->
 		<dependency>
 			<groupId>io.springfox</groupId>
@@ -73,7 +72,12 @@
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>2.6.1</version>
 		</dependency>
-		<!--          -->
+		<!--Druid相关依赖-->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>${druid-version}</version>
+		</dependency>
 
 	</dependencies>
 
