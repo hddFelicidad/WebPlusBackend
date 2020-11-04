@@ -65,7 +65,7 @@ public class ResourceServiceImpl implements ResourceService {
         startDate += " 00:00:00";
         endDate += " 00:00:00";
         try{
-            return getResourceLoad(startDate, endDate);
+            return getResourceLoad(startDate, endDate, "day");
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -74,17 +74,31 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public ResponseVO getResourceLoadByMonth(String startDate, String endDate) {
+        startDate += "-1 00:00:00";
+        endDate += "-1 00:00:00";
+        try{
+            return getResourceLoad(startDate, endDate, "month");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
 
-    public ResponseVO getResourceLoad(String s, String e) throws ParseException {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    public ResponseVO getResourceLoad(String s, String e, String flag) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
-        //起止时间内的天数
-        int dayDiff = commonUtil.getDistanceDay(startDate, endDate) + 1;
+        //起止时间内的天数/月份
+        int timeDiff = 0;
+        if(flag.equals("day")){
+            timeDiff = commonUtil.getDistanceDay(startDate, endDate) + 1;
+        }else if(flag.equals("month")){
+            timeDiff = commonUtil.getDistanceMonth(startDate, endDate);
+        }
+
+        SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat monthFormat = new SimpleDateFormat("yyyy-MM");
 
         List<GroupPo> groupPoList = groupRepository.findAll();
         List<MachinePo> machinePoList = machineRepository.findAll();
@@ -109,24 +123,34 @@ public class ResourceServiceImpl implements ResourceService {
         int machineLoad = 0;
 
         List<Map<String, Object>> tableData = new ArrayList<>();
-        for(int i = 0; i < dayDiff; i++){
-            Date currentStartTime = commonUtil.addHour(startDate, 24 * i);
-            Date currentEndTime = commonUtil.addHour(currentStartTime, 24);
-            //日期
-            String currentDate = format.format(currentStartTime);
+        for(int i = 0; i < timeDiff; i++){
+            Date currentStartTime;
+            Date currentEndTime;
+            String currentDate;
+
+            if(flag.equals("day")){
+                currentStartTime = commonUtil.addHour(startDate, 24 * i);
+                currentEndTime = commonUtil.addHour(currentStartTime, 24);
+                currentDate = dayFormat.format(currentStartTime);
+            }else {
+                currentStartTime = commonUtil.addMonth(startDate, i);
+                currentEndTime = commonUtil.addMonth(startDate, i + 1);
+                currentDate = monthFormat.format(currentStartTime);
+            }
+
             Map<String, Object> resourceLoadInfo = new HashMap<>();
             resourceLoadInfo.put("date", currentDate);
-            //获取当天的排程订单
+            //获取当天/月的排程订单
             List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
                     currentStartTime, currentEndTime);
             if(orderList.size() == 0){
                 resourceLoadInfo.put("progress", new ArrayList<Integer>());
-            }else{
+            }
+            else{
                 List<Integer> resourceWorkHourList = new ArrayList<>();
                 for(int j = 0; j < resourceIdList.size(); j++){
                     resourceWorkHourList.add(0);
                 }
-
                 for(ScheduleOutputDto.Order order: orderList){
                     List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
                     for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
@@ -147,20 +171,21 @@ public class ResourceServiceImpl implements ResourceService {
 
                 List<Integer> resourceLoadList = new ArrayList<>();
                 for(int m = 0; m < machinePoList.size(); m++){
-                    resourceLoadList.add(resourceWorkHourList.get(m) * 100 / 24);
-                    machineLoad += resourceWorkHourList.get(m) * 100 / 24;
+                    resourceLoadList.add(resourceWorkHourList.get(m) * 100 / 24 / commonUtil.getDistanceDay(currentStartTime, currentEndTime));
+                    machineLoad += resourceWorkHourList.get(m) * 100 / 24 / commonUtil.getDistanceDay(currentStartTime, currentEndTime);
+
                 }
                 for(int n = machinePoList.size(); n < resourceIdList.size(); n++){
-                    resourceLoadList.add(resourceWorkHourList.get(n) * 100 / 12);
-                    groupLoad += resourceWorkHourList.get(n) * 100 / 12;
+                    resourceLoadList.add(resourceWorkHourList.get(n) * 100 / 12 / commonUtil.getDistanceDay(currentStartTime, currentEndTime));
+                    groupLoad += resourceWorkHourList.get(n) * 100 / 12 / commonUtil.getDistanceDay(currentStartTime, currentEndTime);
                 }
                 resourceLoadInfo.put("progress", resourceLoadList);
             }
             tableData.add(resourceLoadInfo);
         }
 
-        machineLoad = machineLoad / dayDiff / machinePoList.size();
-        groupLoad = groupLoad / dayDiff / groupPoList.size();
+        machineLoad = machineLoad / timeDiff / machinePoList.size();
+        groupLoad = groupLoad / timeDiff / groupPoList.size();
 
         Map<String, Object> content = new HashMap<>();
         content.put("human_percent", groupLoad);
