@@ -45,6 +45,9 @@ public class ScheduleInputDto {
     public static class Order {
         private String id;
         private String name;
+        /**
+         * 是否为紧急订单 也就是被中途插入的订单 不可延期
+         */
         private Boolean urgent;
         /**
          * 完成整个订单需要的总时间

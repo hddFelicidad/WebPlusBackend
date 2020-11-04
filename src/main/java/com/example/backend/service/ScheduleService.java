@@ -15,8 +15,9 @@ public interface ScheduleService {
      * 插入紧急订单重新提交排程的异步任务 该函数会立刻返回 需要调用其他函数获取排程结果 但是如果插单前整个排程任务（或者其他的插单排程任务）还没有完成
      * 该方法将会失败
      * 
-     * @param insertTime 插单时间 此时间之前排好的不会被改变 此时间之后的排程可能会被改变来保证该紧急订单优先完成
-     * @param order      紧急订单
+     * @param input 小组、机器、订单等的输入信息 也包括此次插单之前的其他所有插单
+     * @param insertTime  插单时间 此时间之前排好的不会被改变 此时间之后的排程可能会被改变来保证该紧急订单优先完成
+     * @param urgentOrder 新插入的紧急订单
      * @return 如果此时上一次排程任务还没有完成 将会返回false 否则为true
      */
     boolean scheduleInsertUrgentOrder(ScheduleInputDto input, Date insertTime, ScheduleInputDto.Order urgentOrder);
