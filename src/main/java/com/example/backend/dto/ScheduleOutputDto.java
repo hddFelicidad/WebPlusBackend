@@ -18,7 +18,6 @@ public class ScheduleOutputDto {
     @NoArgsConstructor
     public class Order {
         private String id;
-        private String name;
         private List<SubOrder> subOrders;
     }
 
