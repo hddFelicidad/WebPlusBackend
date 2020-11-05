@@ -16,7 +16,7 @@ public class ScheduleOutputDto {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class Order {
+    public static class Order {
         private String id;
         private List<SubOrder> subOrders;
     }
@@ -24,7 +24,7 @@ public class ScheduleOutputDto {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class SubOrder {
+    public static class SubOrder {
         private String id;
         /**
          * 子订单开始的时间

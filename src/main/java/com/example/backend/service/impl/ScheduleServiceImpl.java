@@ -80,9 +80,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         currentInput = input;
         timeGrainStartTime = insertTime;
         solverJob = null;
-        solutionDto = null;
         // 重新排程以优先完成新订单
         scheduleInsertUrgentOrderInternal(currentInput, solutionDto, insertTime, order);
+        solutionDto = null;
         return true;
     }
 
@@ -245,7 +245,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (ScheduleInputDto.Order inputOrder : input.getOrders()) {
             String orderId = inputOrder.getId();
             List<ScheduleOutputDto.SubOrder> outputSubOrders = new ArrayList<>();
-            ScheduleOutputDto.Order outputOrder = res.new Order(orderId, outputSubOrders);
+            ScheduleOutputDto.Order outputOrder = new ScheduleOutputDto.Order(orderId, outputSubOrders);
             outputOrders.add(outputOrder);
             orderMap.put(orderId, outputOrder);
         }
@@ -253,7 +253,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             String orderId = subOrder.getOrderId();
             ScheduleOutputDto.Order outputOrder = orderMap.get(orderId);
             Date subOrderStartTime = new Date(startTime.getTime() + subOrder.getTimeGrain() * 60L * 60L * 1000L);
-            ScheduleOutputDto.SubOrder outputSubOrder = res.new SubOrder(subOrder.getId(), subOrderStartTime,
+            ScheduleOutputDto.SubOrder outputSubOrder = new ScheduleOutputDto.SubOrder(subOrder.getId(), subOrderStartTime,
                     subOrder.getNeedHour(), subOrder.getGroupIdList(), subOrder.getMachine().getId());
             outputOrder.getSubOrders().add(outputSubOrder);
         }
@@ -278,9 +278,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         ScheduleOutputDto res = new ScheduleOutputDto(orders);
         for (OrderSchedulePo orderPo : orderSchedulePos) {
             List<ScheduleOutputDto.SubOrder> subOrders = new ArrayList<>();
-            ScheduleOutputDto.Order order = res.new Order(orderPo.getOrderId(), subOrders);
+            ScheduleOutputDto.Order order = new ScheduleOutputDto.Order(orderPo.getOrderId(), subOrders);
             for (SubOrderSchedulePo subOrderPo : orderPo.getSubOrders())
-                subOrders.add(res.new SubOrder(subOrderPo.getSubOrderId(), subOrderPo.getStartTime(),
+                subOrders.add(new ScheduleOutputDto.SubOrder(subOrderPo.getSubOrderId(), subOrderPo.getStartTime(),
                         subOrderPo.getDurationTimeInHour(), subOrderPo.getGroupIdList(), subOrderPo.getMachineId()));
             res.getOrders().add(order);
         }
