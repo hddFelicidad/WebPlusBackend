@@ -22,10 +22,29 @@ public class CommonUtil {
         return (int) (diff / (24 * 60 * 60 * 1000));
     }
 
+    public int getDistanceMonth(Date startTime, Date endTime){
+        Calendar bef = Calendar.getInstance();
+        Calendar aft = Calendar.getInstance();
+        bef.setTime(startTime);
+        aft.setTime(endTime);
+        int surplus = aft.get(Calendar.DATE) - bef.get(Calendar.DATE);
+        int result = aft.get(Calendar.MONTH) - bef.get(Calendar.MONTH);
+        int month = (aft.get(Calendar.YEAR) - bef.get(Calendar.YEAR)) * 12;
+        surplus = surplus <= 0 ? 1 : 0;
+        return (Math.abs(month + result) + surplus);
+    }
+
     public Date addHour(Date date, int hour){
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         cal.add(Calendar.HOUR, hour);
+        return cal.getTime();
+    }
+
+    public Date addMonth(Date date, int month){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.MONTH, month);
         return cal.getTime();
     }
 

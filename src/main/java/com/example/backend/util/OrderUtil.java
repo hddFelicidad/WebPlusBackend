@@ -13,6 +13,8 @@ import java.util.List;
 public class OrderUtil {
     @Autowired
     OrderRepository orderRepository;
+    @Autowired
+    CommonUtil commonUtil;
 
     /**
      * 根据开始时间和结束时间筛选排程订单
@@ -67,6 +69,16 @@ public class OrderUtil {
         for(ScheduleOutputDto.Order originalOrder: originalOrderList){
             List<ScheduleOutputDto.SubOrder> originalSubOrderList = originalOrder.getSubOrders();
             List<ScheduleOutputDto.SubOrder> targetSubOrderList = new ArrayList<>();
+            for(int i = 0; i < originalOrderList.size() - 1; i++){
+                ScheduleOutputDto.SubOrder current = originalSubOrderList.get(i);
+                ScheduleOutputDto.SubOrder next = originalSubOrderList.get(i+1);
+                if(next.getStartTime().equals(commonUtil.addHour(current.getStartTime(), current.getDurationTimeInHour())) &&
+                current.getMachineId().equals(next.getMachineId()) &&
+                current.getGroupIdList().size() == next.getGroupIdList().size()){
+                    boolean flag = true;
+
+                }
+            }
 
         }
         return targetOrderList;

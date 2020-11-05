@@ -14,13 +14,27 @@ public class ResourceController {
     ResourceService resourceService;
 
     /**
-     * 查询从起始日期到终止日期每个资源的负载情况
-     * @param date 包含起始日期和结束日期的数组
+     * 查询从起始日期到终止日期每个资源的负载情况（按天显示）
+     * @param start_date 开始日期
+     * @param end_date 结束日期
      * @return
      */
-    @PostMapping(value = "/percent")
-    public ResponseVO getLoad(@RequestBody Map<String, String> date) {
-        return resourceService.getResourceLoadByDay(date);
+    @GetMapping(value = "/percent/{start_date}/{end_date}")
+    public ResponseVO getResourceLoadByDay(@PathVariable("start_date") String start_date,
+                                           @PathVariable("end_date") String end_date){
+        return resourceService.getResourceLoadByDay(start_date, end_date);
+    }
+
+    /**
+     * 查询从起始日期到终止日期每个资源的负载情况（按月显示）
+     * @param start_date 开始日期
+     * @param end_date 结束日期
+     * @return
+     */
+    @GetMapping(value = "/percent/month/{start_date}/{end_date}")
+    public ResponseVO getResourceLoadByMonth(@PathVariable("start_date") String start_date,
+                                           @PathVariable("end_date") String end_date){
+        return resourceService.getResourceLoadByMonth(start_date, end_date);
     }
 
     /**
