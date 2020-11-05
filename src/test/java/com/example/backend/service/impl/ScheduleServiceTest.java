@@ -51,7 +51,6 @@ public class ScheduleServiceTest {
                 List<ScheduleInputDto.Order> orders = new ArrayList<>();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
 
-                input.setStartTime(dateFormat.parse("2020-11-3 07"));
                 input.setGroups(groups);
                 input.setMachines(machines);
                 input.setOrders(orders);
@@ -64,7 +63,7 @@ public class ScheduleServiceTest {
                 orders.add(new ScheduleInputDto.Order("416153", "订单416153", false, 8, 11,
                                 Arrays.asList("1", "15", "16", "40"), Arrays.asList("1", "3", "4"),
                                 dateFormat.parse("2020-11-4 14")));
-                serviceImpl.schedule(input);
+                serviceImpl.schedule(input, dateFormat.parse("2020-11-3 07"));
                 ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
                 System.out.println(output.getOrders().size());
         }

@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScheduleInputDto {
-    private Date startTime;
     private List<Group> groups;
     private List<Machine> machines;
     private List<Order> orders;

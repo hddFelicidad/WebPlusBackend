@@ -42,5 +42,9 @@ public class ScheduleOutputDto {
          * 处理该子订单时所使用的机器Id
          */
         private String machineId;
+
+        public Date getEndTime() {
+            return new Date(startTime.getTime() + durationTimeInHour * 60L * 60L * 1000L);
+        }
     }
 }

@@ -9,7 +9,7 @@ public interface ScheduleService {
     /**
      * 提交排程的异步任务 该函数将会立刻返回 需要调用其他函数获取排程结果
      */
-    void schedule(ScheduleInputDto input);
+    void schedule(ScheduleInputDto input, Date startTime);
 
     /**
      * 插入紧急订单重新提交排程的异步任务 该函数会立刻返回 需要调用其他函数获取排程结果 但是如果插单前整个排程任务（或者其他的插单排程任务）还没有完成
