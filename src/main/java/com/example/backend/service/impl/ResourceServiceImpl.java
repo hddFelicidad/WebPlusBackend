@@ -85,6 +85,14 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
 
+    /**
+     * 获取资源负载
+     * @param s 开始时间，格式为2020-11-11 00：00：00
+     * @param e 结束时间，格式同上
+     * @param flag  按天/月显示的标志（"day"为按天，"month"为按月）
+     * @return
+     * @throws ParseException
+     */
     public ResponseVO getResourceLoad(String s, String e, String flag) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date startDate = simpleDateFormat.parse(s);
@@ -100,10 +108,11 @@ public class ResourceServiceImpl implements ResourceService {
         SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat monthFormat = new SimpleDateFormat("yyyy-MM");
 
-        List<GroupPo> groupPoList = groupRepository.findAll();
-        List<MachinePo> machinePoList = machineRepository.findAll();
-        List<Map<String, String>> resourceList = new ArrayList<>();
-        List<String> resourceIdList = new ArrayList<>();
+        //一些初始化工作
+        List<GroupPo> groupPoList = groupRepository.findAll();          //所有的人力资源
+        List<MachinePo> machinePoList = machineRepository.findAll();    //所有的机器资源
+        List<Map<String, String>> resourceList = new ArrayList<>();     //所有的资源信息（机器在前，人力在后）
+        List<String> resourceIdList = new ArrayList<>();                //所有的资源id（index与上面对应）
         for(MachinePo machinePo: machinePoList){
             Map<String, String> machineInfo = new HashMap<>();
             machineInfo.put("id", "ln" + machinePo.getMachineId());
@@ -119,15 +128,18 @@ public class ResourceServiceImpl implements ResourceService {
             resourceIdList.add("hr" + groupPo.getGroupId());
         }
 
-        int groupLoad = 0;
-        int machineLoad = 0;
+        int groupLoad = 0;      //起止时间内，所有人力资源被占用时间的总和（单位：小时）
+        int machineLoad = 0;    //起止时间内，所有机器资源被占用时间的总和（单位：小时）
 
         List<Map<String, Object>> tableData = new ArrayList<>();
+        //按天/月统计资源负载
         for(int i = 0; i < timeDiff; i++){
+            //起止时间
+            //如果是按天显示，示例为：2020-11-11 00：00：00， 2020-11-11 23：59：59， 2020-11-11
+            //如果是按月显示，示例为：2020-11-1 00：00：00， 2020-11-30 23：59：59， 2020-11
             Date currentStartTime;
             Date currentEndTime;
             String currentDate;
-
             if(flag.equals("day")){
                 currentStartTime = commonUtil.addHour(startDate, 24 * i);
                 currentEndTime = commonUtil.addHour(currentStartTime, 24);
@@ -147,7 +159,7 @@ public class ResourceServiceImpl implements ResourceService {
                 resourceLoadInfo.put("progress", new ArrayList<Integer>());
             }
             else{
-                List<Integer> resourceWorkHourList = new ArrayList<>();
+                List<Integer> resourceWorkHourList = new ArrayList<>(); //记录每种资源在起止时间内被占用的时间（单位：小时），未被占用则为0
                 for(int j = 0; j < resourceIdList.size(); j++){
                     resourceWorkHourList.add(0);
                 }
@@ -157,13 +169,13 @@ public class ResourceServiceImpl implements ResourceService {
                         //判断是否为当天的子订单
                         if(currentStartTime.before(subOrder.getStartTime()) && currentEndTime.after(subOrder.getStartTime())){
                             int durationHour = subOrder.getDurationTimeInHour();
-                            List<String> occupyGroupIdList = subOrder.getGroupIdList();
+                            List<String> occupyGroupIdList = subOrder.getGroupIdList();     //子订单占用的人力资源
                             for(String occupyGroupId: occupyGroupIdList){
-                                int groupIndex = resourceIdList.indexOf("hr" + occupyGroupId);
+                                int groupIndex = resourceIdList.indexOf("hr" + occupyGroupId);  //获取对应下标
                                 resourceWorkHourList.set(groupIndex, durationHour + resourceWorkHourList.get(groupIndex));
                             }
-                            String occupyMachineId = subOrder.getMachineId();
-                            int machineIndex = resourceIdList.indexOf("ln" + occupyMachineId);
+                            String occupyMachineId = subOrder.getMachineId();               //子订单占用的机器资源
+                            int machineIndex = resourceIdList.indexOf("ln" + occupyMachineId);  //获取对应下标
                             resourceWorkHourList.set(machineIndex, durationHour + resourceWorkHourList.get(machineIndex));
                         }
                     }
@@ -171,19 +183,23 @@ public class ResourceServiceImpl implements ResourceService {
 
                 List<Integer> resourceLoadList = new ArrayList<>();
                 for(int m = 0; m < machinePoList.size(); m++){
-                    resourceLoadList.add(resourceWorkHourList.get(m) * 100 / 24 / commonUtil.getDistanceDay(currentStartTime, currentEndTime));
-                    machineLoad += resourceWorkHourList.get(m) * 100 / 24 / commonUtil.getDistanceDay(currentStartTime, currentEndTime);
+                    int progress = resourceWorkHourList.get(m) * 100 / 24 / commonUtil.getDistanceDay(currentStartTime, currentEndTime);
+                    resourceLoadList.add(progress);
+                    machineLoad += progress;
 
                 }
                 for(int n = machinePoList.size(); n < resourceIdList.size(); n++){
-                    resourceLoadList.add(resourceWorkHourList.get(n) * 100 / 12 / commonUtil.getDistanceDay(currentStartTime, currentEndTime));
-                    groupLoad += resourceWorkHourList.get(n) * 100 / 12 / commonUtil.getDistanceDay(currentStartTime, currentEndTime);
+                    List<Integer> tmp = Arrays.asList(1, 2, 3, 4, 5);
+                    int progress = resourceWorkHourList.get(n) * 100 / getWorkHourByMonth(currentStartTime, tmp, 12);
+                    resourceLoadList.add(progress);
+                    groupLoad += progress;
                 }
                 resourceLoadInfo.put("progress", resourceLoadList);
             }
             tableData.add(resourceLoadInfo);
         }
 
+        //计算人力资源和机器资源的总负载率
         machineLoad = machineLoad / timeDiff / machinePoList.size();
         groupLoad = groupLoad / timeDiff / groupPoList.size();
 
@@ -196,6 +212,13 @@ public class ResourceServiceImpl implements ResourceService {
         return ResponseVO.buildSuccess(content);
     }
 
+    /**
+     * 获取资源甘特图
+     * @param s 开始时间，格式为2020-11-11 00：00：00
+     * @param e 结束时间，格式同上
+     * @return
+     * @throws ParseException
+     */
     public ResponseVO getResourceOccupy(String s, String e) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date startDate = simpleDateFormat.parse(s);
@@ -244,7 +267,7 @@ public class ResourceServiceImpl implements ResourceService {
             //产品id
             String itemId = orderRepository.findOrderPoByOrderId(order.getId()).getItemId();
             //产品名称（数据表里暂时没有这一项）
-            String itemName = orderRepository.findOrderPoByOrderId(order.getId()).getItemId();
+            String itemName = "产品" + orderRepository.findOrderPoByOrderId(order.getId()).getItemId();
             //为该产品随机生成一个颜色（延期为红色）
             String color = checkForDelay(order);
 
@@ -287,7 +310,6 @@ public class ResourceServiceImpl implements ResourceService {
                         productIdBegin++;
                         resourceOccupyVoList.add(productGroupOccupy);
                     }
-
 
                     //子订单占用机器资源Id
                     String occupyMachineId = subOrder.getMachineId();
@@ -367,6 +389,7 @@ public class ResourceServiceImpl implements ResourceService {
             machineOccupy.setProduct_id("");
             resourceOccupyVoList.add(machineOccupy);
         }
+
         return ResponseVO.buildSuccess(resourceOccupyVoList);
     }
 
@@ -385,6 +408,31 @@ public class ResourceServiceImpl implements ResourceService {
             }
             return randomColor;
         }
+    }
+
+    /**
+     * 获取人力资源在某一个月内的可分配工作时间
+     * @param date
+     * @param workdayList
+     * @param workHour
+     * @return
+     */
+    public int getWorkHourByMonth(Date date, List<Integer> workdayList, int workHour){
+        List<String> dayOfWeekList = Arrays.asList("星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六");
+        SimpleDateFormat format = new SimpleDateFormat("E");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int day = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        int count = 0;
+        for(int i = 0; i < day; i++){
+            Date current = commonUtil.addDay(date, i);
+            String dayOfWeek = format.format(current);
+            if(workdayList.indexOf(dayOfWeekList.indexOf(dayOfWeek)) != -1)
+                count += workHour;
+        }
+
+        return count;
     }
 
 }

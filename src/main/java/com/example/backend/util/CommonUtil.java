@@ -38,6 +38,14 @@ public class CommonUtil {
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         cal.add(Calendar.HOUR, hour);
+        cal.add(Calendar.SECOND, -1);
+        return cal.getTime();
+    }
+
+    public Date addDay(Date date, int day){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.DATE, day);
         return cal.getTime();
     }
 
@@ -45,6 +53,7 @@ public class CommonUtil {
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         cal.add(Calendar.MONTH, month);
+        cal.add(Calendar.SECOND, -1);
         return cal.getTime();
     }
 
