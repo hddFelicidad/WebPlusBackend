@@ -45,6 +45,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Autowired
     private SolverManager<SubOrderSchedule, UUID> solverManager;
 
+    private Map<String, List<ScheduleOutputDto.SubOrder>> fixedOrderSubOrders;
     private ScheduleOutputDto solutionDto;
 
     private ScheduleInputDto currentInput;
@@ -66,6 +67,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         currentInput = input;
         timeGrainStartTime = startTime;
         solverJob = null;
+        fixedOrderSubOrders = null;
         solutionDto = null;
         scheduleInternal(input, startTime);
     }
@@ -80,6 +82,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         currentInput = input;
         timeGrainStartTime = insertTime;
         solverJob = null;
+        fixedOrderSubOrders = new HashMap<>();
         // 重新排程以优先完成新订单
         scheduleInsertUrgentOrderInternal(currentInput, solutionDto, insertTime, order);
         solutionDto = null;
@@ -109,7 +112,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             e.printStackTrace();
         }
         // 保存排程结果
-        solutionDto = createOutputDto(currentInput, timeGrainStartTime, solution);
+        solutionDto = createOutputDto(fixedOrderSubOrders, currentInput, timeGrainStartTime, solution);
         // 持久化
         saveSolution(solutionDto);
         return solutionDto;
@@ -184,10 +187,22 @@ public class ScheduleServiceImpl implements ScheduleService {
             ScheduleInputDto.Order inputOrder = inputOrderMap.get(outputOrder.getId());
             for (ScheduleOutputDto.SubOrder outputSubOrder : outputOrder.getSubOrders()) {
                 if (outputSubOrder.getEndTime().after(insertTime))
+                    // 需要重新安排
                     subOrders.add(new SubOrder(outputSubOrder.getId(), outputOrder.getId(),
                             outputSubOrder.getDurationTimeInHour(), inputOrder.getNeedMemberCount(),
                             inputOrder.getAvailableGroupIdList(), inputOrder.getAvailableMachineTypeIdList(),
                             calculateTimeGrain(insertTime, inputOrder.getDeadline())));
+                else {
+                    // 保存不需要重排的子订单
+                    List<ScheduleOutputDto.SubOrder> outputSubOrders;
+                    if (fixedOrderSubOrders.containsKey(outputOrder.getId()))
+                        outputSubOrders = fixedOrderSubOrders.get(outputOrder.getId());
+                    else {
+                        outputSubOrders = new ArrayList<>();
+                        fixedOrderSubOrders.put(outputOrder.getId(), outputSubOrders);
+                    }
+                    outputSubOrders.add(outputSubOrder);
+                }
             }
         }
 
@@ -237,24 +252,33 @@ public class ScheduleServiceImpl implements ScheduleService {
         return (int) ((time.getTime() - startTime.getTime()) / 1000L / 60L / 60L);
     }
 
-    private ScheduleOutputDto createOutputDto(ScheduleInputDto input, Date startTime, SubOrderSchedule solution) {
+    private ScheduleOutputDto createOutputDto(Map<String, List<ScheduleOutputDto.SubOrder>> fixedSubOrders,
+            ScheduleInputDto input, Date startTime, SubOrderSchedule solution) {
         // 把排程结果转换为Dto
         List<ScheduleOutputDto.Order> outputOrders = new ArrayList<>(input.getOrders().size());
         HashMap<String, ScheduleOutputDto.Order> orderMap = new HashMap<>();
         ScheduleOutputDto res = new ScheduleOutputDto(outputOrders);
         for (ScheduleInputDto.Order inputOrder : input.getOrders()) {
             String orderId = inputOrder.getId();
-            List<ScheduleOutputDto.SubOrder> outputSubOrders = new ArrayList<>();
-            ScheduleOutputDto.Order outputOrder = new ScheduleOutputDto.Order(orderId, outputSubOrders);
+            ScheduleOutputDto.Order outputOrder = new ScheduleOutputDto.Order(orderId, new ArrayList<>());
             outputOrders.add(outputOrder);
             orderMap.put(orderId, outputOrder);
         }
+        // 原本的固定的子订单
+        if (fixedOrderSubOrders != null)
+            for (var entry : fixedSubOrders.entrySet()) {
+                String orderId = entry.getKey();
+                ScheduleOutputDto.Order outputOrder = orderMap.get(orderId);
+                outputOrder.getSubOrders().addAll(entry.getValue());
+            }
+        // 排好的子订单
         for (SubOrder subOrder : solution.getSubOrderList()) {
             String orderId = subOrder.getOrderId();
             ScheduleOutputDto.Order outputOrder = orderMap.get(orderId);
             Date subOrderStartTime = new Date(startTime.getTime() + subOrder.getTimeGrain() * 60L * 60L * 1000L);
-            ScheduleOutputDto.SubOrder outputSubOrder = new ScheduleOutputDto.SubOrder(subOrder.getId(), subOrderStartTime,
-                    subOrder.getNeedHour(), subOrder.getGroupIdList(), subOrder.getMachine().getId());
+            ScheduleOutputDto.SubOrder outputSubOrder = new ScheduleOutputDto.SubOrder(subOrder.getId(),
+                    subOrderStartTime, subOrder.getNeedHour(), subOrder.getGroupIdList(),
+                    subOrder.getMachine().getId());
             outputOrder.getSubOrders().add(outputSubOrder);
         }
         return res;
