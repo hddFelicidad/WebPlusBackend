@@ -70,6 +70,14 @@ public class OrderServiceImpl implements OrderService {
         return null;
     }
 
+    /**
+     * 获取产品甘特图
+     * @param s 开始时间，格式为2020-11-5 00：00：00
+     * @param e 结束时间，格式同上
+     * @param productId 产品id
+     * @return
+     * @throws ParseException
+     */
     public ResponseVO getProductOccupy(String s, String e, String productId) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -163,6 +171,13 @@ public class OrderServiceImpl implements OrderService {
         return ResponseVO.buildSuccess(content);
     }
 
+    /**
+     * 获取订单甘特图
+     * @param s 开始时间，格式为2020-11-5 00：00：00
+     * @param e 结束时间，格式同上
+     * @return
+     * @throws ParseException
+     */
     public ResponseVO getOrderOccupy(String s, String e) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");

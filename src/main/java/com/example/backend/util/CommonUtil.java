@@ -42,6 +42,15 @@ public class CommonUtil {
         return cal.getTime();
     }
 
+    public Date getStartOfDay(Date date){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        return calendar.getTime();
+    }
+
     public Date addDay(Date date, int day){
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
@@ -55,6 +64,14 @@ public class CommonUtil {
         cal.add(Calendar.MONTH, month);
         cal.add(Calendar.SECOND, -1);
         return cal.getTime();
+    }
+
+    public boolean isDifferentDay(Date date1, Date date2){
+        Calendar cal1 = Calendar.getInstance();
+        cal1.setTime(date1);
+        Calendar cal2 = Calendar.getInstance();
+        cal2.setTime(date2);
+        return cal1.get(Calendar.ERA) == cal2.get(Calendar.ERA) && cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) && cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
     }
 
     public String getColor(){

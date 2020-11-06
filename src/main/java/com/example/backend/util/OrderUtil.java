@@ -40,7 +40,7 @@ public class OrderUtil {
                 if(within)
                     targetOrderList.add(order);
             }
-            return targetOrderList;
+            return orderRemake(targetOrderList);
         }
         return null;
     }
@@ -60,26 +60,61 @@ public class OrderUtil {
     }
 
     /**
-     * TODO
+     * 子订单整合
      * @param originalOrderList
      * @return
      */
     public List<ScheduleOutputDto.Order> orderRemake(List<ScheduleOutputDto.Order> originalOrderList){
         List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
         for(ScheduleOutputDto.Order originalOrder: originalOrderList){
+            int subOrderId = 1;
             List<ScheduleOutputDto.SubOrder> originalSubOrderList = originalOrder.getSubOrders();
             List<ScheduleOutputDto.SubOrder> targetSubOrderList = new ArrayList<>();
             for(int i = 0; i < originalOrderList.size() - 1; i++){
                 ScheduleOutputDto.SubOrder current = originalSubOrderList.get(i);
                 ScheduleOutputDto.SubOrder next = originalSubOrderList.get(i+1);
+                //
                 if(next.getStartTime().equals(commonUtil.addHour(current.getStartTime(), current.getDurationTimeInHour())) &&
                 current.getMachineId().equals(next.getMachineId()) &&
                 current.getGroupIdList().size() == next.getGroupIdList().size()){
                     boolean flag = true;
-
+                    List<String> currentGroupIdList = current.getGroupIdList();
+                    List<String> nextGroupIdList = next.getGroupIdList();
+                    for(int j = 0; j < currentGroupIdList.size(); j++){
+                        if(!currentGroupIdList.get(j).equals(nextGroupIdList.get(j))){
+                            flag = false;
+                            break;
+                        }
+                    }
+                    if(flag){
+                        ScheduleOutputDto.SubOrder newSubOrder = new ScheduleOutputDto.SubOrder(originalOrder.getId() + subOrderId,
+                                current.getStartTime(), current.getDurationTimeInHour() + next.getDurationTimeInHour(),
+                                current.getGroupIdList(), current.getMachineId());
+                        subOrderId++;
+                        targetSubOrderList.add(newSubOrder);
+                    }
+                }
+                //
+                else if(!commonUtil.isDifferentDay(current.getStartTime(), current.getEndTime())){
+                    Date splitDate = commonUtil.getStartOfDay(current.getEndTime());
+                    ScheduleOutputDto.SubOrder firstNewSubOrder = new ScheduleOutputDto.SubOrder(originalOrder.getId() + subOrderId,
+                            current.getStartTime(), commonUtil.getDistanceHour(current.getStartTime(), splitDate),
+                            current.getGroupIdList(), current.getMachineId());
+                    subOrderId++;
+                    ScheduleOutputDto.SubOrder secondNewSubOrder = new ScheduleOutputDto.SubOrder(originalOrder.getId() + subOrderId,
+                            splitDate, commonUtil.getDistanceHour(splitDate, current.getEndTime()),
+                            current.getGroupIdList(), current.getMachineId());
+                    targetSubOrderList.add(firstNewSubOrder);
+                    targetSubOrderList.add(secondNewSubOrder);
+                    subOrderId++;
+                }
+                else{
+                    targetSubOrderList.add(current);
+                    subOrderId++;
                 }
             }
-
+            ScheduleOutputDto.Order newOrder = new ScheduleOutputDto.Order(originalOrder.getId(), targetSubOrderList);
+            targetOrderList.add(newOrder);
         }
         return targetOrderList;
     }
