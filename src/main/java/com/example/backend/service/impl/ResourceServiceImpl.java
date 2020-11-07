@@ -115,10 +115,10 @@ public class ResourceServiceImpl implements ResourceService {
         List<String> resourceIdList = new ArrayList<>();                //所有的资源id（index与上面对应）
         for(MachinePo machinePo: machinePoList){
             Map<String, String> machineInfo = new HashMap<>();
-            machineInfo.put("id", "ln" + machinePo.getMachineId());
+            machineInfo.put("id", "ln" + machinePo.getId());
             machineInfo.put("name", machinePo.getMachineName());
             resourceList.add(machineInfo);
-            resourceIdList.add("ln" + machinePo.getMachineId());
+            resourceIdList.add("ln" + machinePo.getId());
         }
         for(GroupPo groupPo: groupPoList){
             Map<String, String> groupInfo = new HashMap<>();
@@ -249,7 +249,7 @@ public class ResourceServiceImpl implements ResourceService {
             groupLastOccupyTime.add("");
         }
         for(MachinePo machine: machinePoList){
-            machineIdList.add(machine.getMachineId());
+            machineIdList.add(String.valueOf(machine.getId()));
             machineOccupyHourList.add(0);
             machineFirstOccupyTime.add("");
             machineLastOccupyTime.add("");

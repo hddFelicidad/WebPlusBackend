@@ -89,8 +89,8 @@ public class InitSchedule {
             input.setOrders(orders);
             orders.add(new ScheduleInputDto.Order("413095", "订单413095", false, 8, 8, Arrays.asList("5", "9", "1", "12"),
                     Arrays.asList("1", "2"), dateFormat.parse("2020-11-4 10")));
-            orders.add(new ScheduleInputDto.Order("414837", "订单414837", false, 8, 8,
-                    Arrays.asList("3", "14", "16", "40"), Arrays.asList("2", "3"), dateFormat.parse("2020-11-4 12")));
+            orders.add(new ScheduleInputDto.Order("414837", "订单414837", false, 8, 8, Arrays.asList("3", "14", "16", "40"),
+                    Arrays.asList("2", "3"), dateFormat.parse("2020-11-4 12")));
             orders.add(
                     new ScheduleInputDto.Order("416153", "订单416153", false, 8, 11, Arrays.asList("1", "15", "16", "40"),
                             Arrays.asList("1", "3", "4"), dateFormat.parse("2020-11-4 14")));
