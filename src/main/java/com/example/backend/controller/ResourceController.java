@@ -59,6 +59,12 @@ public class ResourceController {
         return resourceService.getResourceOccupyByDay(date);
     }
 
+    @GetMapping(value = "/resource/occupyInfo/{date}")
+    public ResponseVO getResourceOccupyInfo(@PathVariable("date") String date){
+        return resourceService.getResourceOccupyInfo(date);
+    }
+
+    //以下是资源的增删改查
     @GetMapping(value = "/resourceInfo")
     public ResponseVO getResourceInfo(){
         return resourceService.getResourceInfo();

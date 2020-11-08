@@ -12,6 +12,8 @@ public interface ResourceService {
 
     ResponseVO getResourceOccupyByDay(Map<String, String> date);
 
+    ResponseVO getResourceOccupyInfo(String date);
+
     ResponseVO getResourceLoadByDay(String startDate, String endDate);
 
     ResponseVO getResourceLoadByMonth(String startDate, String endDate);

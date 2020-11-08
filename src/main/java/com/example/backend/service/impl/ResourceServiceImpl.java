@@ -60,6 +60,18 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     @Override
+    public ResponseVO getResourceOccupyInfo(String date) {
+        String startDate = date + " 00:00:00";
+        String endDate = date + " 23:59:59";
+        try{
+            return getResourceOccupyInfo(startDate, endDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
     public ResponseVO getResourceLoadByDay(String startDate, String endDate) {
         startDate += " 00:00:00";
         endDate += " 00:00:00";
@@ -565,6 +577,78 @@ public class ResourceServiceImpl implements ResourceService {
         }
 
         return ResponseVO.buildSuccess(resourceOccupyVoList);
+    }
+
+
+    public ResponseVO getResourceOccupyInfo(String s, String e) throws ParseException {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date startDate = simpleDateFormat.parse(s);
+        Date endDate = simpleDateFormat.parse(e);
+
+        //获取在起止时间内的排程订单
+        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
+                startDate, endDate);
+        if(orderList.size() == 0){
+            return ResponseVO.buildFailure("起止时间内无正在处理的订单");
+        }
+        //一些初始化工作
+        List<GroupPo> groupPoList = groupRepository.findAll();
+        List<MachinePo> machinePoList = machineRepository.findAll();
+        ArrayList<String> groupIdList = new ArrayList<>();              //所有人力资源Id
+        ArrayList<ResourceOccupyInfoVo> groupOccupyInfoList = new ArrayList<>();
+        ArrayList<String> machineIdList = new ArrayList<>();
+        ArrayList<ResourceOccupyInfoVo> machineOccupyInfoList = new ArrayList<>();
+        for(GroupPo group: groupPoList){
+            groupIdList.add(group.getGroupId());
+            ResourceOccupyInfoVo groupOccupyInfo = new ResourceOccupyInfoVo();
+            List<ResourceOccupyInfoVo.OccupyInfo> occupyInfoList = new ArrayList<>();
+            groupOccupyInfo.setResourceId("hr" + group.getGroupId());
+            groupOccupyInfo.setResourceName(group.getGroupName());
+            groupOccupyInfo.setOccupyInfoList(occupyInfoList);
+            groupOccupyInfoList.add(groupOccupyInfo);
+        }
+        for(MachinePo machine: machinePoList){
+            machineIdList.add(String.valueOf(machine.getId()));
+            ResourceOccupyInfoVo machineOccupyInfo = new ResourceOccupyInfoVo();
+            List<ResourceOccupyInfoVo.OccupyInfo> occupyInfoList = new ArrayList<>();
+            machineOccupyInfo.setResourceId("hr" + machine.getId());
+            machineOccupyInfo.setResourceName(machine.getMachineName());
+            machineOccupyInfo.setOccupyInfoList(occupyInfoList);
+            machineOccupyInfoList.add(machineOccupyInfo);
+        }
+
+        for(ScheduleOutputDto.Order order: orderList){
+            String orderId = order.getId();
+            List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
+            for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
+                String subOrderId = subOrder.getId();
+                Date startTime = subOrder.getStartTime();
+                Date endTime = subOrder.getEndTime();
+                if(!(startTime.before(startDate) || startTime.after(endDate))){
+                    List<String> occupyGroupIdList = subOrder.getGroupIdList();
+                    for(String occupyGroupId: occupyGroupIdList){
+                        int occupyGroupIndex = groupIdList.indexOf(occupyGroupId);
+                        List<ResourceOccupyInfoVo.OccupyInfo> occupyInfoList = groupOccupyInfoList.get(occupyGroupIndex).getOccupyInfoList();
+                        ResourceOccupyInfoVo.OccupyInfo occupyInfo = new ResourceOccupyInfoVo.OccupyInfo(
+                                simpleDateFormat.format(startTime), simpleDateFormat.format(endTime),
+                                orderId, subOrderId);
+                        occupyInfoList.add(occupyInfo);
+                    }
+                    String occupyMachineId = subOrder.getMachineId();
+                    int occupyMachineIndex = machineIdList.indexOf(occupyMachineId);
+                    List<ResourceOccupyInfoVo.OccupyInfo> occupyInfoList = machineOccupyInfoList.get(occupyMachineIndex).getOccupyInfoList();
+                    ResourceOccupyInfoVo.OccupyInfo occupyInfo = new ResourceOccupyInfoVo.OccupyInfo(
+                            simpleDateFormat.format(startTime), simpleDateFormat.format(endTime),
+                            orderId, subOrderId);
+                    occupyInfoList.add(occupyInfo);
+                }
+            }
+        }
+
+        Map<String, Object> content = new HashMap<>();
+        content.put("human", groupOccupyInfoList);
+        content.put("device", machineOccupyInfoList);
+        return ResponseVO.buildSuccess(content);
     }
 
     public String checkForDelay(ScheduleOutputDto.Order order){
