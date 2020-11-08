@@ -1,6 +1,8 @@
 package com.example.backend.controller;
 
 import com.example.backend.service.ResourceService;
+import com.example.backend.vo.ResourceAddVo;
+import com.example.backend.vo.ResourceUpdateVo;
 import com.example.backend.vo.ResponseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -55,5 +57,25 @@ public class ResourceController {
     @PostMapping(value = "/resource")
     public ResponseVO getResourceLoadByDay(@RequestBody Map<String, String> date){
         return resourceService.getResourceOccupyByDay(date);
+    }
+
+    @GetMapping(value = "/resourceInfo")
+    public ResponseVO getResourceInfo(){
+        return resourceService.getResourceInfo();
+    }
+
+    @PostMapping(value = "/updateResource")
+    public ResponseVO updateResourceInfo(@RequestBody ResourceUpdateVo resourceInfo){
+        return resourceService.updateResourceInfo(resourceInfo);
+    }
+
+    @PostMapping(value = "/addResource")
+    public ResponseVO addResource(@RequestBody ResourceAddVo resourceInfo){
+        return resourceService.addResource(resourceInfo);
+    }
+
+    @GetMapping(value = "/deleteResource/{id}")
+    public ResponseVO deleteResource(@PathVariable("id") String resourceId){
+        return resourceService.deleteResource(resourceId);
     }
 }

@@ -10,8 +10,7 @@ import com.example.backend.service.LegacySystemService;
 import com.example.backend.service.ResourceService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.util.*;
-import com.example.backend.vo.ResourceOccupyVo;
-import com.example.backend.vo.ResponseVO;
+import com.example.backend.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -82,6 +81,176 @@ public class ResourceServiceImpl implements ResourceService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public ResponseVO getResourceInfo() {
+        List<ResourceGetVo> groupList = new ArrayList<>();
+        List<ResourceGetVo> machineList = new ArrayList<>();
+        List<GroupPo> groupPoList = groupRepository.findAll();
+        List<MachinePo> machinePoList = machineRepository.findAll();
+        List<String> machineIdList = new ArrayList<>();
+        List<String> machineNameList = new ArrayList<>();
+        List<String> machineDateList = new ArrayList<>();
+        List<Integer> machineCountList = new ArrayList<>();
+
+        for(GroupPo groupPo: groupPoList){
+            int shift = -1;
+            switch (groupPo.getClassName()){
+                case "DAY":
+                    shift = 2;
+                    break;
+                case "NIGHT":
+                    shift = 3;
+                    break;
+                case "ALL":
+                    shift = 1;
+                    break;
+                default:
+                    break;
+            }
+            ResourceGetVo groupInfo = new ResourceGetVo("hr" + groupPo.getGroupId(),
+                    groupPo.getAddDate(), groupPo.getGroupName(), groupPo.getMemberCount(), shift);
+            groupList.add(groupInfo);
+        }
+
+        for(MachinePo machinePo: machinePoList){
+            String machineId = machinePo.getMachineId();
+            if(machineIdList.indexOf(machineId) == -1){
+                machineIdList.add(machineId);
+                machineNameList.add(machinePo.getMachineName());
+                machineDateList.add(machinePo.getAddDate());
+                machineCountList.add(1);
+            }else{
+                machineCountList.set(machineIdList.indexOf(machineId), machineCountList.get(machineIdList.indexOf(machineId)) + 1);
+            }
+        }
+        for(int i = 0; i < machineIdList.size(); i++){
+            ResourceGetVo machineInfo = new ResourceGetVo("ln" + machineIdList.get(i),
+                    machineDateList.get(i), machineNameList.get(i), machineCountList.get(i), 1);
+            machineList.add(machineInfo);
+        }
+
+        Map<String, List<ResourceGetVo>> content = new HashMap<>();
+        content.put("human", groupList);
+        content.put("device", machineList);
+
+        return ResponseVO.buildSuccess(content);
+    }
+
+    @Override
+    public ResponseVO updateResourceInfo(ResourceUpdateVo resourceInfo) {
+        String resourceId = resourceInfo.getId();
+        if(resourceId.startsWith("ln")){
+            String machineId = resourceId.substring(2);
+            List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineId(machineId);
+            if(machinePoList.size() > resourceInfo.getResourceCount()){
+                for(int i = resourceInfo.getResourceCount(); i < machinePoList.size(); i++){
+                    machineRepository.delete(machinePoList.get(i));
+                }
+            }else if(machinePoList.size() == resourceInfo.getResourceCount()){
+                for(MachinePo machinePo: machinePoList){
+                    machinePo.setMachineName(resourceInfo.getResourceName());
+                    machineRepository.save(machinePo);
+                }
+            }else{
+                for(MachinePo machinePo: machinePoList){
+                    machinePo.setMachineName(resourceInfo.getResourceName());
+                    machineRepository.save(machinePo);
+                }
+                for(int i = 0; i < resourceInfo.getResourceCount()-machinePoList.size(); i++){
+                    MachinePo machinePo = new MachinePo(null, resourceInfo.getResourceName(), machineId,
+                            machinePoList.get(0).getAddDate());
+                    machineRepository.save(machinePo);
+                }
+            }
+            return ResponseVO.buildSuccess();
+        }else if(resourceId.startsWith("hr")){
+            String groupId = resourceId.substring(2);
+            String className = "";
+            switch (resourceInfo.getShift()){
+                case 1:
+                    className = "ALL";
+                    break;
+                case 2:
+                    className = "DAY";
+                    break;
+                case 3:
+                    className = "NIGHT";
+                    break;
+                default:
+                    break;
+            }
+
+            GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
+            groupPo.setGroupName(resourceInfo.getResourceName());
+            groupPo.setMemberCount(resourceInfo.getResourceCount());
+            groupPo.setClassName(className);
+            groupRepository.save(groupPo);
+            return ResponseVO.buildSuccess();
+        }else{
+            return ResponseVO.buildFailure();
+        }
+    }
+
+    @Override
+    public ResponseVO addResource(ResourceAddVo resourceInfo) {
+        int type = resourceInfo.getType();
+        if(type == 0){
+            String className = "";
+            switch (resourceInfo.getShift()){
+                case 1:
+                    className = "ALL";
+                    break;
+                case 2:
+                    className = "DAY";
+                    break;
+                case 3:
+                    className = "NIGHT";
+                    break;
+                default:
+                    break;
+            }
+            GroupPo groupPo = new GroupPo(null, resourceInfo.getResourceName(), "",
+                    resourceInfo.getResourceCount(), className, resourceInfo.getDate());
+            GroupPo newGroup = groupRepository.save(groupPo);
+            newGroup.setGroupId(String.valueOf(newGroup.getId()));
+            groupRepository.save(newGroup);
+            return ResponseVO.buildSuccess("hr" + newGroup.getGroupId());
+        }else if(type == 1){
+            int count = resourceInfo.getResourceCount();
+            int machineId = -1;
+            for(int i = 0; i< count; i++){
+                MachinePo machinePo = new MachinePo(null, resourceInfo.getResourceName(), "", resourceInfo.getDate());
+                MachinePo newMachine = machineRepository.save(machinePo);
+                if(machineId == -1)
+                    machineId = newMachine.getId();
+                newMachine.setMachineId(String.valueOf(machineId));
+                machineRepository.save(newMachine);
+            }
+            return ResponseVO.buildSuccess("ln" + machineId);
+        }else {
+            return ResponseVO.buildFailure();
+        }
+    }
+
+    @Override
+    public ResponseVO deleteResource(String resourceId) {
+        if(resourceId.startsWith("ln")){
+            String machineId = resourceId.substring(2);
+            List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineId(machineId);
+            for(MachinePo machinePo: machinePoList){
+                machineRepository.delete(machinePo);
+            }
+            return ResponseVO.buildSuccess();
+        }else if(resourceId.startsWith("hr")){
+            String groupId = resourceId.substring(2);
+            GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
+            groupRepository.delete(groupPo);
+            return ResponseVO.buildSuccess();
+        }else{
+            return ResponseVO.buildFailure();
+        }
     }
 
 

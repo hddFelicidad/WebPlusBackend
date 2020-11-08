@@ -9,6 +9,8 @@ import java.util.List;
 @Repository
 public interface MachineRepository extends JpaRepository<MachinePo, Integer> {
 
+    List<MachinePo> findMachinePosByMachineId(String machineId);
+
     List<MachinePo> findMachinePosByMachineName(String machineName);
 
     MachinePo findMachinePoById(Integer id);
