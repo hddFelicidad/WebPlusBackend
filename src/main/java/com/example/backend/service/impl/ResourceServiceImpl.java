@@ -141,13 +141,13 @@ public class ResourceServiceImpl implements ResourceService {
             Date currentEndTime;
             String currentDate;
             if(flag.equals("day")){
-                currentStartTime = commonUtil.addHour(startDate, 24 * i);
-                currentEndTime = commonUtil.addHour(currentStartTime, 24);
-                currentDate = dayFormat.format(currentStartTime);
+                currentStartTime = commonUtil.addStartHour(startDate, 24 * i);
+                currentEndTime = commonUtil.addEndHour(currentStartTime, 24);
+                currentDate = dayFormat.format(currentEndTime);
             }else {
-                currentStartTime = commonUtil.addMonth(startDate, i);
-                currentEndTime = commonUtil.addMonth(startDate, i + 1);
-                currentDate = monthFormat.format(currentStartTime);
+                currentStartTime = commonUtil.addStartMonth(startDate, i);
+                currentEndTime = commonUtil.addEndMonth(startDate, i + 1);
+                currentDate = monthFormat.format(currentEndTime);
             }
 
             Map<String, Object> resourceLoadInfo = new HashMap<>();
@@ -167,7 +167,7 @@ public class ResourceServiceImpl implements ResourceService {
                     List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
                     for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
                         //判断是否为当天的子订单
-                        if(currentStartTime.before(subOrder.getStartTime()) && currentEndTime.after(subOrder.getStartTime())){
+                        if(!(currentStartTime.after(subOrder.getStartTime()) || currentEndTime.before(subOrder.getStartTime()))){
                             int durationHour = subOrder.getDurationTimeInHour();
                             List<String> occupyGroupIdList = subOrder.getGroupIdList();     //子订单占用的人力资源
                             for(String occupyGroupId: occupyGroupIdList){
@@ -183,14 +183,19 @@ public class ResourceServiceImpl implements ResourceService {
 
                 List<Integer> resourceLoadList = new ArrayList<>();
                 for(int m = 0; m < machinePoList.size(); m++){
-                    int progress = resourceWorkHourList.get(m) * 100 / 24 / commonUtil.getDistanceDay(currentStartTime, currentEndTime);
+                    int progress = resourceWorkHourList.get(m) * 100 / 24 / (commonUtil.getDistanceDay(currentStartTime, currentEndTime) + 1);
                     resourceLoadList.add(progress);
                     machineLoad += progress;
 
                 }
                 for(int n = machinePoList.size(); n < resourceIdList.size(); n++){
                     List<Integer> tmp = Arrays.asList(1, 2, 3, 4, 5);
-                    int progress = resourceWorkHourList.get(n) * 100 / getWorkHourByMonth(currentStartTime, tmp, 12);
+                    int progress = 0;
+                    if(flag.equals("day")){
+                        progress = resourceWorkHourList.get(n) * 100 / 12;
+                    }else{
+                        progress = resourceWorkHourList.get(n) * 100 / getWorkHourByMonth(currentStartTime, tmp, 12);
+                    }
                     resourceLoadList.add(progress);
                     groupLoad += progress;
                 }
@@ -273,13 +278,13 @@ public class ResourceServiceImpl implements ResourceService {
 
             for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
                 //判断子订单是否在起止时间内
-                if(startDate.before(subOrder.getStartTime()) && endDate.after(subOrder.getStartTime())){
+                if(!(startDate.after(subOrder.getStartTime()) || endDate.before(subOrder.getStartTime()))){
                     //子订单开始时间
                     Date start_date = subOrder.getStartTime();
                     //子订单持续时间
                     int durationTime = subOrder.getDurationTimeInHour();
                     //子订单结束时间
-                    Date end_date = commonUtil.addHour(start_date, durationTime);
+                    Date end_date = subOrder.getEndTime();
 
                     //子订单占用人力资源id列表
                     List<String> occupyGroupIdList = subOrder.getGroupIdList();
@@ -333,7 +338,7 @@ public class ResourceServiceImpl implements ResourceService {
                             machineLastOccupyTime.set(machineIndex, simpleDateFormat.format(end_date));
                         }
                     }
-                    ResourceOccupyVo productMachineOccupy = new ResourceOccupyVo(productIdBegin + 1, "", "",
+                    ResourceOccupyVo productMachineOccupy = new ResourceOccupyVo(productIdBegin, "", "",
                             simpleDateFormat.format(start_date), String.valueOf(durationTime * 60),
                             itemName, color, itemId, machineIndex + machineIdBegin);
                     productIdBegin++;
@@ -368,7 +373,7 @@ public class ResourceServiceImpl implements ResourceService {
 
         for(int j = 0; j < machineIdList.size(); j++){
             String machineId = machineIdList.get(j);
-            String machineName = machineRepository.findMachinePosByMachineId(machineId).get(0).getMachineName();
+            String machineName = machineRepository.findMachinePoById(Integer.parseInt(machineId)).getMachineName();
             String percent = Math.min(machineOccupyHourList.get(j), 24) * 100 / 24 + "%";
             String start = machineFirstOccupyTime.get(j);
             int duration = 0;
@@ -398,7 +403,7 @@ public class ResourceServiceImpl implements ResourceService {
         //判断最后一个子订单是否超期
         ScheduleOutputDto.SubOrder lastSubOrder = order.getSubOrders().get(order.getSubOrders().size() - 1);
         Date dueTime = orderRepository.findOrderPoByOrderId(id).getDeadLine();  //DDL
-        Date endTime = commonUtil.addHour(lastSubOrder.getStartTime(), lastSubOrder.getDurationTimeInHour());
+        Date endTime = commonUtil.addEndHour(lastSubOrder.getStartTime(), lastSubOrder.getDurationTimeInHour());
         if(endTime.after(dueTime)){
             return "red";
         }else{

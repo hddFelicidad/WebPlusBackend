@@ -110,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
             for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
                 int durationHour = subOrder.getDurationTimeInHour();
                 Date startTime = subOrder.getStartTime();
-                if(startDate.before(startTime) && endDate.after(startTime)){
+                if(!(startDate.after(startTime) || endDate.before(startTime))){
                     Map<String, Object> machineData = new HashMap<>();
                     List<String> occupyGroupIdList = subOrder.getGroupIdList();
                     String occupyMachineId = subOrder.getMachineId();
@@ -129,7 +129,7 @@ public class OrderServiceImpl implements OrderService {
                     }
                     groupLinkList.add(groupTmp);
 
-                    String machineName = machineRepository.findMachinePosByMachineId(occupyMachineId).get(0).getMachineName();
+                    String machineName = machineRepository.findMachinePoById(Integer.parseInt(occupyMachineId)).getMachineName();
                     machineData.put("id", dataId);
                     machineData.put("resource", machineName);
                     machineData.put("start_date", simpleDateFormat.format(startTime));
@@ -208,7 +208,7 @@ public class OrderServiceImpl implements OrderService {
             orderOccupy.setId(id);
             orderOccupy.setNumber(orderId);
             //暂时没有获取工艺的方法
-            orderOccupy.setText("");
+            orderOccupy.setText("装配");
             //产品名称（数据表里暂时没有这一项）
             orderOccupy.setName("产品" + orderPo.getItemId());
             orderOccupy.setDeal_date(deadLine);
@@ -216,8 +216,8 @@ public class OrderServiceImpl implements OrderService {
             int parentId = id;
             id++;
             List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
-            Date dealDate = commonUtil.addHour(subOrderList.get(subOrderList.size() - 1).getStartTime(),
-                    subOrderList.get(subOrderList.size() - 1).getDurationTimeInHour());
+            //预计交期（最后一个子订单的结束时间）
+            Date dealDate = subOrderList.get(subOrderList.size() - 1).getEndTime();
             orderOccupy.setExpc_date(format.format(dealDate));
 
             //判断此订单当天是否能准时交付
@@ -231,7 +231,7 @@ public class OrderServiceImpl implements OrderService {
                 Date now = new Date();
                 int durationHour = subOrder.getDurationTimeInHour();
                 Date startTime = subOrder.getStartTime();
-                Date endTime = commonUtil.addHour(startTime, durationHour);
+                Date endTime = subOrder.getEndTime();
                 totalTime += durationHour;
                 if(startTime.before(now)){
                     if(now.before(endTime)){
@@ -240,34 +240,23 @@ public class OrderServiceImpl implements OrderService {
                         doneTime += durationHour;
                     }
                 }
-
-                if(startDate.before(startTime) && endDate.after(startTime)){
-                    OrderOccupyVo subOrderOccupy = new OrderOccupyVo();
-                    subOrderOccupy.setId(id);
-                    subOrderOccupy.setNumber(orderId);
-                    //暂时没有获取工艺的方法
-                    subOrderOccupy.setText("");
-                    //产品名称（数据表里暂时没有这一项）
-                    subOrderOccupy.setName("产品" + orderPo.getItemId());
-                    subOrderOccupy.setDeal_date(format.format(endTime));
-                    subOrderOccupy.setExpc_date(format.format(endTime));
-                    subOrderOccupy.setParent(parentId);
-                    id++;
-
-                    float progress = 0;
-                    if(startTime.before(now)){
-                        if(now.before(endTime)){
-                            progress = (float) commonUtil.getDistanceHour(startTime, now) / durationHour;
-                        }else{
-                            progress = 1;
-                        }
-                    }
-                    subOrderOccupy.setProgress(progress);
-                    orderOccupyVoList.add(subOrderOccupy);
-                }
             }
+            OrderOccupyVo subOrderOccupy = new OrderOccupyVo();
+            subOrderOccupy.setId(id);
+            subOrderOccupy.setNumber(orderId);
+            //暂时没有获取工艺的方法
+            subOrderOccupy.setText("装配");
+            //产品名称（数据表里暂时没有这一项）
+            subOrderOccupy.setName("产品" + orderPo.getItemId());
+            subOrderOccupy.setDeal_date(deadLine);
+            subOrderOccupy.setExpc_date(format.format(dealDate));
+            subOrderOccupy.setParent(parentId);
+            id++;
+            subOrderOccupy.setProgress((float) doneTime / totalTime);
+            orderOccupyVoList.add(subOrderOccupy);
 
-            orderOccupy.setProgress( (float) doneTime / totalTime);
+
+            orderOccupy.setProgress((float) doneTime / totalTime);
             orderOccupyVoList.add(orderOccupy);
         }
 

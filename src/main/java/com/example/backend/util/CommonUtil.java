@@ -34,7 +34,14 @@ public class CommonUtil {
         return (Math.abs(month + result) + surplus);
     }
 
-    public Date addHour(Date date, int hour){
+    public Date addStartHour(Date date, int hour){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.HOUR, hour);
+        return cal.getTime();
+    }
+
+    public Date addEndHour(Date date, int hour){
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         cal.add(Calendar.HOUR, hour);
@@ -58,7 +65,14 @@ public class CommonUtil {
         return cal.getTime();
     }
 
-    public Date addMonth(Date date, int month){
+    public Date addStartMonth(Date date, int month){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.MONTH, month);
+        return cal.getTime();
+    }
+
+    public Date addEndMonth(Date date, int month){
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
         cal.add(Calendar.MONTH, month);
