@@ -13,4 +13,6 @@ public interface ResourceService {
     ResponseVO getResourceLoadByDay(String startDate, String endDate);
 
     ResponseVO getResourceLoadByMonth(String startDate, String endDate);
+
+    
 }

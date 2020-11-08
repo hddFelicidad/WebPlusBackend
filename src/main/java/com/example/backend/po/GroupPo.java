@@ -23,4 +23,6 @@ public class GroupPo {
     Integer memberCount;
 
     String className;
+
+    String addDate;
 }

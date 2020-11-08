@@ -19,4 +19,6 @@ public class MachinePo {
     String machineName;
 
     String machineId;
+
+    String addDate;
 }
