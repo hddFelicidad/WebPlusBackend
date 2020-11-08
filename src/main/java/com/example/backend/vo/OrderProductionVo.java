@@ -24,7 +24,7 @@ public class OrderProductionVo {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class SubOrderProductionVo {
+    public static class SubOrderProductionVo {
         /** 子订单Id */
         String id;
 
@@ -38,24 +38,18 @@ public class OrderProductionVo {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class ProductionResourceVo {
+    public static class ProductionResourceVo {
         /** 资源Id */
         String id;
 
         /** 资源名称 */
         String name;
-
-        /** 资源类型 */
-        String type;
-
-        /** 资源数量 */
-        Integer count;
     }
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class ProductionTaskVo {
+    public static class ProductionTaskVo {
         /** 资源Id */
         String resourceId;
 

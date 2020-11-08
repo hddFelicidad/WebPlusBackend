@@ -4,12 +4,16 @@ import com.example.backend.data.GroupRepository;
 import com.example.backend.data.MachineRepository;
 import com.example.backend.data.OrderRepository;
 import com.example.backend.dto.ScheduleOutputDto;
+import com.example.backend.po.GroupPo;
+import com.example.backend.po.MachinePo;
 import com.example.backend.po.OrderPo;
 import com.example.backend.service.OrderService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.util.CommonUtil;
 import com.example.backend.util.OrderUtil;
 import com.example.backend.vo.OrderOccupyVo;
+import com.example.backend.vo.OrderPlanVo;
+import com.example.backend.vo.OrderProductionVo;
 import com.example.backend.vo.ResponseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,6 +72,68 @@ public class OrderServiceImpl implements OrderService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public ResponseVO getOrderPlan() {
+        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderRemake(scheduleService.tryGetScheduleOutput().getOrders());
+        List<OrderPlanVo> orderPlanVoList = new ArrayList<>();
+        for(ScheduleOutputDto.Order eachOrder: orderScheduleList){
+            List<ScheduleOutputDto.SubOrder> subOrderList = eachOrder.getSubOrders();
+            List<OrderPlanVo.SubOrderPlanVo> subOrderPlanVoList = new ArrayList<>();
+            for(ScheduleOutputDto.SubOrder eachSubOrder: subOrderList){
+                OrderPlanVo.SubOrderPlanVo subOrderPlanVo = new OrderPlanVo.SubOrderPlanVo(eachSubOrder.getId(),
+                        eachSubOrder.getStartTime(), eachSubOrder.getEndTime());
+                subOrderPlanVoList.add(subOrderPlanVo);
+            }
+            OrderPlanVo orderPlanVo = new OrderPlanVo(eachOrder.getId(), subOrderPlanVoList);
+            orderPlanVoList.add(orderPlanVo);
+        }
+        return ResponseVO.buildSuccess(orderPlanVoList);
+    }
+
+    @Override
+    public ResponseVO getOrderPlanProduction() {
+        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderRemake(scheduleService.tryGetScheduleOutput().getOrders());
+        List<OrderProductionVo> orderProductionVoList = new ArrayList<>();
+        for(ScheduleOutputDto.Order eachOrder: orderScheduleList) {
+            List<ScheduleOutputDto.SubOrder> subOrderList = eachOrder.getSubOrders();
+            List<OrderProductionVo.SubOrderProductionVo> subOrderProductionVoList = new ArrayList<>();
+            for(ScheduleOutputDto.SubOrder eachSubOrder: subOrderList){
+                List<OrderProductionVo.ProductionResourceVo> productionResourceVoList = new ArrayList<>();
+                List<OrderProductionVo.ProductionTaskVo> productionTaskVoList = new ArrayList<>();
+                List<String> groupIdList = eachSubOrder.getGroupIdList();
+                String machineId = eachSubOrder.getMachineId();
+                Date startTime = eachSubOrder.getStartTime();
+                Date endTime = eachSubOrder.getEndTime();
+                for(String groupId: groupIdList){
+                    GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
+                    OrderProductionVo.ProductionResourceVo groupResource = new
+                            OrderProductionVo.ProductionResourceVo("hr" + groupId, groupPo.getGroupName());
+                    OrderProductionVo.ProductionTaskVo groupTask = new
+                            OrderProductionVo.ProductionTaskVo("hr" + groupId, groupPo.getGroupName(),
+                            startTime, endTime);
+                    productionResourceVoList.add(groupResource);
+                    productionTaskVoList.add(groupTask);
+                }
+                MachinePo machinePo = machineRepository.findMachinePoById(Integer.parseInt(machineId));
+                OrderProductionVo.ProductionResourceVo machineResource = new
+                        OrderProductionVo.ProductionResourceVo("ln" + machineId, machinePo.getMachineName());
+                OrderProductionVo.ProductionTaskVo machineTask = new
+                        OrderProductionVo.ProductionTaskVo("ln" + machineId, machinePo.getMachineName(),
+                        startTime, endTime);
+                productionResourceVoList.add(machineResource);
+                productionTaskVoList.add(machineTask);
+                OrderProductionVo.SubOrderProductionVo subOrderProductionVo = new
+                        OrderProductionVo.SubOrderProductionVo(eachSubOrder.getId(),
+                        productionResourceVoList, productionTaskVoList);
+                subOrderProductionVoList.add(subOrderProductionVo);
+            }
+            OrderProductionVo orderProductionVo = new OrderProductionVo(eachOrder.getId(),
+                    subOrderProductionVoList);
+            orderProductionVoList.add(orderProductionVo);
+        }
+        return ResponseVO.buildSuccess(orderProductionVoList);
     }
 
     /**

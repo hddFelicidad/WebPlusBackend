@@ -11,4 +11,8 @@ public interface OrderService {
     ResponseVO getProductOccupyByHour(String productId, String date);
 
     ResponseVO getProductOccupyByDay(String productId, Map<String, String> date);
+
+    ResponseVO getOrderPlan();
+
+    ResponseVO getOrderPlanProduction();
 }

@@ -38,4 +38,14 @@ public class OrderController {
         return orderService.getProductOccupyByDay(productId, date);
     }
 
+    @GetMapping(value = "/order/plan")
+    public ResponseVO getOrderPlan(){
+        return orderService.getOrderPlan();
+    }
+
+    @GetMapping(value = "/order/plan/production")
+    public ResponseVO getOrderPlanProduction(){
+        return orderService.getOrderPlanProduction();
+    }
+
 }
