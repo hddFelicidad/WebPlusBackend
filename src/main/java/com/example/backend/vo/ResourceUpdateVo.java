@@ -11,9 +11,9 @@ public class ResourceUpdateVo {
 
     String id;
 
-    String resourceName;
+    String name;
 
-    Integer resourceCount;
+    Integer number;
 
     Integer shift;
 }

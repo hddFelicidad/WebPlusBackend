@@ -13,9 +13,9 @@ public class ResourceGetVo {
 
     String date;
 
-    String resourceName;
+    String name;
 
-    Integer resourceCount;
+    Integer number;
 
     Integer shift;
 }

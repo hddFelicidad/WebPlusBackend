@@ -21,7 +21,7 @@ public class ResourceOccupyVo {
     String start_date;
 
     /** 持续时间 */
-    String duration;
+    Integer duration;
 
     /** 产品名称 */
     String text;
