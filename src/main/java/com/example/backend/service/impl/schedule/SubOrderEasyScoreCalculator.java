@@ -4,33 +4,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
-import org.optaplanner.core.impl.score.director.easy.EasyScoreCalculator;
 
-public class SubOrderEasyScoreCalculator implements EasyScoreCalculator<SubOrderSchedule> {
-    @Override
+public class SubOrderEasyScoreCalculator { // implements EasyScoreCalculator<SubOrderSchedule> {
+    // @Override
     public HardSoftScore calculateScore(SubOrderSchedule schedule) {
         int hardScore = 0;
         int softScore = 0;
         for (SubOrder a : schedule.getSubOrderList()) {
             // 设备不正确
-            if (a.getMachine() != null && !a.getAvailableMachineTypeIdList().contains(a.getMachine().getMachineId()))
+            if (a.getMachine() != null && !a.getAvailableMachineTypeIds().contains(a.getMachine().getMachineId()))
                 hardScore--;
             // 用了重复的小组
             int selfOverlapCount = sameGroupCountOfSelf(a);
             hardScore -= selfOverlapCount;
             // 小组不正确
-            if (a.getGroup1() != null && !a.getAvailableGroupIdList().contains(a.getGroup1().getId()))
+            if (a.getGroup1() != null && !a.getAvailableGroupIds().contains(a.getGroup1().getId()))
                 hardScore--;
-            if (a.getGroup2() != null && !a.getAvailableGroupIdList().contains(a.getGroup2().getId()))
+            if (a.getGroup2() != null && !a.getAvailableGroupIds().contains(a.getGroup2().getId()))
                 hardScore--;
-            if (a.getGroup3() != null && !a.getAvailableGroupIdList().contains(a.getGroup3().getId()))
+            if (a.getGroup3() != null && !a.getAvailableGroupIds().contains(a.getGroup3().getId()))
                 hardScore--;
             // 小组总人数不满足订单要求
-            if (a.getTotalMemberCount() < a.getNeedMemberCount())
-                hardScore -= a.getNeedMemberCount() - a.getTotalMemberCount();
+            hardScore -= a.memberCountNotEnoughCount();
             // 小组工作时间不符合
-            if (a.getTimeGrain() != null) {
-                int startHourOfDay = (schedule.getStartHourOfDay() + a.getTimeGrain()) % 24;
+            if (a.getTimeSlot() != null) {
+                int startHourOfDay = (schedule.getStartHourOfDay() + a.getTimeSlot().getIndex()) % 24;
                 if (!groupCanWork(a.getGroup1(), startHourOfDay, a))
                     hardScore--;
                 if (!groupCanWork(a.getGroup2(), startHourOfDay, a))
@@ -41,9 +39,9 @@ public class SubOrderEasyScoreCalculator implements EasyScoreCalculator<SubOrder
 
             for (SubOrder b : schedule.getSubOrderList())
                 // 时间交叉
-                if (!a.getId().equals(b.getId()) && a.getTimeGrain() != null && b.getTimeGrain() != null
-                        && a.getTimeGrain() <= b.getTimeGrain()
-                        && a.getTimeGrain() + a.getNeedHour() > b.getTimeGrain()) {
+                if (!a.getId().equals(b.getId()) && a.getTimeSlot() != null && b.getTimeSlot() != null
+                        && a.getTimeSlot().getIndex() <= b.getTimeSlot().getIndex()
+                        && a.getTimeSlot().getIndex() + a.getNeedHour() > b.getTimeSlot().getIndex()) {
                     // 占用相同的小组
                     int overlapGroupCount = sameGroupCount(a, b);
                     if (overlapGroupCount >= 1)
@@ -54,7 +52,7 @@ public class SubOrderEasyScoreCalculator implements EasyScoreCalculator<SubOrder
                 }
 
             // 超过ddl
-            if (a.getTimeGrain() != null && a.getTimeGrain() + a.getNeedHour() > a.getDeadLineTimeGrain())
+            if (a.getTimeSlot() != null && a.getTimeSlot().getIndex() > a.getDeadLineTimeGrain())
                 softScore--;
         }
         return HardSoftScore.of(hardScore, softScore);

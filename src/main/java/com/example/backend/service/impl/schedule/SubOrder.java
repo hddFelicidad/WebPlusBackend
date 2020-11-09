@@ -1,6 +1,7 @@
 package com.example.backend.service.impl.schedule;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
@@ -17,8 +18,8 @@ public class SubOrder {
     private String orderId;
     private Integer needHour;
     private Integer needMemberCount;
-    private List<String> availableGroupIdList;
-    private List<String> availableMachineTypeIdList;
+    private HashSet<String> availableGroupIds;
+    private HashSet<String> availableMachineTypeIds;
     private Integer deadLineTimeGrain;
 
     @PlanningVariable(valueRangeProviderRefs = "groupRange")
@@ -31,17 +32,17 @@ public class SubOrder {
     @PlanningVariable(valueRangeProviderRefs = "machineRange")
     private Machine machine;
 
-    @PlanningVariable(valueRangeProviderRefs = "timeGrainRange")
-    private Integer timeGrain;
+    @PlanningVariable(valueRangeProviderRefs = "timeSlotRange")
+    private TimeSlot timeSlot;
 
     public SubOrder(String id, String orderId, Integer needHour, Integer needMemberCount,
-            List<String> availableGroupIdList, List<String> availableMachineTypeIdList, Integer deadLineTimeGrain) {
+            HashSet<String> availableGroupIds, HashSet<String> availableMachineTypeIds, Integer deadLineTimeGrain) {
         this.id = id;
         this.orderId = orderId;
         this.needHour = needHour;
         this.needMemberCount = needMemberCount;
-        this.availableGroupIdList = availableGroupIdList;
-        this.availableMachineTypeIdList = availableMachineTypeIdList;
+        this.availableGroupIds = availableGroupIds;
+        this.availableMachineTypeIds = availableMachineTypeIds;
         this.deadLineTimeGrain = deadLineTimeGrain;
     }
 
@@ -56,7 +57,33 @@ public class SubOrder {
         return groupIdList;
     }
 
-    public int getTotalMemberCount() {
+    public boolean machineNotRight() {
+        return machine != null && !availableMachineTypeIds.contains(machine.getMachineId());
+    }
+
+    public int getGroupNotRightCount() {
+        int res = 0;
+        if (group1 != null && !availableGroupIds.contains(group1.getId()))
+            res++;
+        if (group2 != null && !availableGroupIds.contains(group2.getId()))
+            res++;
+        if (group3 != null && !availableGroupIds.contains(group3.getId()))
+            res++;
+        return res;
+    }
+
+    public int getSameGroupCount() {
+        int res = 0;
+        if (group2 != null && group2 == group1)
+            res++;
+        if (group3 != null && group3 == group1)
+            res++;
+        if (group3 != null && group3 == group2)
+            res++;
+        return res;
+    }
+
+    public int memberCountNotEnoughCount() {
         int count = 0;
         if (group1 != null)
             count += group1.getMemberCount();
@@ -64,6 +91,23 @@ public class SubOrder {
             count += group2.getMemberCount();
         if (group3 != null)
             count += group3.getMemberCount();
+        if (count < needMemberCount)
+            return needMemberCount - count;
+        return 0;
+    }
+
+    public int groupCannotWorkCount() {
+        int count = 0;
+        if (group1 != null && group1.canWorkIn(timeSlot.getTime().getHour(), needHour))
+            count++;
+        if (group2 != null && group2.canWorkIn(timeSlot.getTime().getHour(), needHour))
+            count++;
+        if (group3 != null && group3.canWorkIn(timeSlot.getTime().getHour(), needHour))
+            count++;
         return count;
+    }
+
+    public boolean ddlExceed() {
+        return timeSlot != null && deadLineTimeGrain < timeSlot.getIndex();
     }
 }

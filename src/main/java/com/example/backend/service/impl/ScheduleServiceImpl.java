@@ -1,5 +1,7 @@
 package com.example.backend.service.impl;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,6 +26,7 @@ import com.example.backend.service.impl.schedule.Machine;
 import com.example.backend.service.impl.schedule.SubOrder;
 import com.example.backend.service.impl.schedule.SubOrderSchedule;
 import com.example.backend.service.impl.schedule.TimeInterval;
+import com.example.backend.service.impl.schedule.TimeSlot;
 
 import org.optaplanner.core.api.solver.SolverJob;
 import org.optaplanner.core.api.solver.SolverManager;
@@ -37,7 +40,7 @@ import lombok.var;
 @Service
 public class ScheduleServiceImpl implements ScheduleService {
     // 以4个小时为粒度划分子订单
-    static final int subOrderMaxNeedTime = 4;
+    static final int subOrderMaxNeedTime = 12;
 
     @Autowired
     private OrderSchduleRepository orderScheduleRepository;
@@ -49,7 +52,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private ScheduleOutputDto solutionDto;
 
     private ScheduleInputDto currentInput;
-    private Date timeGrainStartTime;
+    private Date timeSlotstartTime;
     private SolverJob<SubOrderSchedule, UUID> solverJob;
 
     @PostConstruct
@@ -65,7 +68,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public void schedule(ScheduleInputDto input, Date startTime) {
         currentInput = input;
-        timeGrainStartTime = startTime;
+        timeSlotstartTime = startTime;
         solverJob = null;
         fixedOrderSubOrders = null;
         solutionDto = null;
@@ -80,7 +83,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             return false;
 
         currentInput = input;
-        timeGrainStartTime = insertTime;
+        timeSlotstartTime = insertTime;
         solverJob = null;
         fixedOrderSubOrders = new HashMap<>();
         // 重新排程以优先完成新订单
@@ -112,7 +115,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             e.printStackTrace();
         }
         // 保存排程结果
-        solutionDto = createOutputDto(fixedOrderSubOrders, currentInput, timeGrainStartTime, solution);
+        solutionDto = createOutputDto(fixedOrderSubOrders, currentInput, timeSlotstartTime, solution);
         // 持久化
         saveSolution(solutionDto);
         return solutionDto;
@@ -150,7 +153,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         startTimeCalendar.setTime(startTime);
 
         // Time grain
-        List<Integer> timeGrains = getTimeGrains(startTime, orders);
+        List<TimeSlot> timeSlots = getTimeSlots(startTime, orders);
 
         // 划分子订单
         List<SubOrder> subOrders = new ArrayList<>();
@@ -159,7 +162,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         // 排程
         SubOrderSchedule schedule = new SubOrderSchedule(startTimeCalendar.get(Calendar.HOUR_OF_DAY), groups, machines,
-                timeGrains, subOrders);
+                timeSlots, subOrders);
 
         UUID problemId = UUID.randomUUID();
         solverJob = solverManager.solve(problemId, schedule);
@@ -178,7 +181,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 需要考虑当前子订单全部完成
         List<ScheduleInputDto.Order> orders = input.getOrders();
         orders.add(urgentOrder);
-        List<Integer> timeGrains = getTimeGrains(insertTime, orders);
+        List<TimeSlot> timeSlots = getTimeSlots(insertTime, orders);
 
         // 需要排程的子订单 初始值先加入紧急子订单
         List<SubOrder> subOrders = splitOrder(urgentOrder, insertTime, subOrderMaxNeedTime);
@@ -190,7 +193,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     // 需要重新安排
                     subOrders.add(new SubOrder(outputSubOrder.getId(), outputOrder.getId(),
                             outputSubOrder.getDurationTimeInHour(), inputOrder.getNeedMemberCount(),
-                            inputOrder.getAvailableGroupIdList(), inputOrder.getAvailableMachineTypeIdList(),
+                            inputOrder.getAvailableGroupIds(), inputOrder.getAvailableMachineTypeIds(),
                             calculateTimeGrain(insertTime, inputOrder.getDeadline())));
                 else {
                     // 保存不需要重排的子订单
@@ -208,26 +211,25 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         // 排程
         SubOrderSchedule schedule = new SubOrderSchedule(insertTimeCalendar.get(Calendar.HOUR_OF_DAY), groups, machines,
-                timeGrains, subOrders);
+                timeSlots, subOrders);
 
         UUID problemId = UUID.randomUUID();
         solverJob = solverManager.solve(problemId, schedule);
     }
 
-    private List<Integer> getTimeGrains(Date startTime, List<ScheduleInputDto.Order> orders) {
+    private List<TimeSlot> getTimeSlots(Date startTime, List<ScheduleInputDto.Order> orders) {
+        // 开始时间必须对齐时间粒度 或者简单地对齐7点与19点
         // 以小时为单位
-        // 任务安排的时间范围为最迟的ddl与开始时间差值的倍率
-        int factor = 2;
-        // TODO: 开始时间应当对齐时间粒度
-        Date finalDeadline = startTime;
+        int totalNeedHour = 0;
         for (ScheduleInputDto.Order order : orders)
-            if (order.getDeadline().after(finalDeadline))
-                finalDeadline = order.getDeadline();
-        int availableTimeInHour = (int) ((finalDeadline.getTime() - startTime.getTime()) / 1000L / 60L / 60L) * factor;
-        List<Integer> timeGrains = new ArrayList<>(availableTimeInHour);
-        for (int i = 0; i < availableTimeInHour; i++)
-            timeGrains.add(i);
-        return timeGrains;
+            totalNeedHour += order.getNeedHour();
+        int timeSlotCount = totalNeedHour / subOrderMaxNeedTime + 10;
+
+        List<TimeSlot> timeSlots = new ArrayList<>(timeSlotCount);
+        for (int i = 0; i < timeSlotCount; i++)
+            timeSlots.add(new TimeSlot(i, new Date(startTime.getTime() + i * subOrderMaxNeedTime * 1000L * 60L * 60L)
+                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()));
+        return timeSlots;
     }
 
     private List<SubOrder> splitOrder(ScheduleInputDto.Order order, Date startTime, int subOrderMaxNeedTime) {
@@ -238,18 +240,18 @@ public class ScheduleServiceImpl implements ScheduleService {
         Integer deadlineTimeGrain = calculateTimeGrain(startTime, deadline);
         while (remainHours > subOrderMaxNeedTime) {
             subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), subOrderMaxNeedTime,
-                    order.getNeedMemberCount(), order.getAvailableGroupIdList(), order.getAvailableMachineTypeIdList(),
+                    order.getNeedMemberCount(), order.getAvailableGroupIds(), order.getAvailableMachineTypeIds(),
                     deadlineTimeGrain));
             remainHours -= subOrderMaxNeedTime;
         }
         subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), remainHours,
-                order.getNeedMemberCount(), order.getAvailableGroupIdList(), order.getAvailableMachineTypeIdList(),
+                order.getNeedMemberCount(), order.getAvailableGroupIds(), order.getAvailableMachineTypeIds(),
                 deadlineTimeGrain));
         return subOrders;
     }
 
     private Integer calculateTimeGrain(Date startTime, Date time) {
-        return (int) ((time.getTime() - startTime.getTime()) / 1000L / 60L / 60L);
+        return (int) ((time.getTime() - startTime.getTime()) / subOrderMaxNeedTime / 1000L / 60L / 60L);
     }
 
     private ScheduleOutputDto createOutputDto(Map<String, List<ScheduleOutputDto.SubOrder>> fixedSubOrders,
@@ -275,10 +277,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (SubOrder subOrder : solution.getSubOrderList()) {
             String orderId = subOrder.getOrderId();
             ScheduleOutputDto.Order outputOrder = orderMap.get(orderId);
-            Date subOrderStartTime = new Date(startTime.getTime() + subOrder.getTimeGrain() * 60L * 60L * 1000L);
+            Date subOrderStartTime = (subOrder.getTimeSlot() != null)
+                    ? Date.from(subOrder.getTimeSlot().getTime().atZone(ZoneId.systemDefault()).toInstant())
+                    : null;
             ScheduleOutputDto.SubOrder outputSubOrder = new ScheduleOutputDto.SubOrder(subOrder.getId(),
                     subOrderStartTime, subOrder.getNeedHour(), subOrder.getGroupIdList(),
-                    subOrder.getMachine().getId());
+                    (subOrder.getMachine() != null) ? subOrder.getMachine().getId() : null);
             outputOrder.getSubOrders().add(outputSubOrder);
         }
         return res;
