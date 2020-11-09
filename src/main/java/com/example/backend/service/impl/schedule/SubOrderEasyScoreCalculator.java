@@ -4,26 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
-import org.optaplanner.core.impl.score.director.easy.EasyScoreCalculator;
 
-public class SubOrderEasyScoreCalculator implements EasyScoreCalculator<SubOrderSchedule> {
-    @Override
+public class SubOrderEasyScoreCalculator { // implements EasyScoreCalculator<SubOrderSchedule> {
+    // @Override
     public HardSoftScore calculateScore(SubOrderSchedule schedule) {
         int hardScore = 0;
         int softScore = 0;
         for (SubOrder a : schedule.getSubOrderList()) {
             // 设备不正确
-            if (a.getMachine() != null && !a.getAvailableMachineTypeIdList().contains(a.getMachine().getMachineId()))
+            if (a.getMachine() != null && !a.getAvailableMachineTypeIds().contains(a.getMachine().getMachineId()))
                 hardScore--;
             // 用了重复的小组
             int selfOverlapCount = sameGroupCountOfSelf(a);
             hardScore -= selfOverlapCount;
             // 小组不正确
-            if (a.getGroup1() != null && !a.getAvailableGroupIdList().contains(a.getGroup1().getId()))
+            if (a.getGroup1() != null && !a.getAvailableGroupIds().contains(a.getGroup1().getId()))
                 hardScore--;
-            if (a.getGroup2() != null && !a.getAvailableGroupIdList().contains(a.getGroup2().getId()))
+            if (a.getGroup2() != null && !a.getAvailableGroupIds().contains(a.getGroup2().getId()))
                 hardScore--;
-            if (a.getGroup3() != null && !a.getAvailableGroupIdList().contains(a.getGroup3().getId()))
+            if (a.getGroup3() != null && !a.getAvailableGroupIds().contains(a.getGroup3().getId()))
                 hardScore--;
             // 小组总人数不满足订单要求
             if (a.getTotalMemberCount() < a.getNeedMemberCount())

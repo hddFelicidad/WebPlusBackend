@@ -1,6 +1,7 @@
 package com.example.backend.service.impl.schedule;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
@@ -17,8 +18,8 @@ public class SubOrder {
     private String orderId;
     private Integer needHour;
     private Integer needMemberCount;
-    private List<String> availableGroupIdList;
-    private List<String> availableMachineTypeIdList;
+    private HashSet<String> availableGroupIds;
+    private HashSet<String> availableMachineTypeIds;
     private Integer deadLineTimeGrain;
 
     @PlanningVariable(valueRangeProviderRefs = "groupRange")
@@ -35,13 +36,13 @@ public class SubOrder {
     private Integer timeGrain;
 
     public SubOrder(String id, String orderId, Integer needHour, Integer needMemberCount,
-            List<String> availableGroupIdList, List<String> availableMachineTypeIdList, Integer deadLineTimeGrain) {
+            HashSet<String> availableGroupIds, HashSet<String> availableMachineTypeIds, Integer deadLineTimeGrain) {
         this.id = id;
         this.orderId = orderId;
         this.needHour = needHour;
         this.needMemberCount = needMemberCount;
-        this.availableGroupIdList = availableGroupIdList;
-        this.availableMachineTypeIdList = availableMachineTypeIdList;
+        this.availableGroupIds = availableGroupIds;
+        this.availableMachineTypeIds = availableMachineTypeIds;
         this.deadLineTimeGrain = deadLineTimeGrain;
     }
 
@@ -65,5 +66,31 @@ public class SubOrder {
         if (group3 != null)
             count += group3.getMemberCount();
         return count;
+    }
+
+    public boolean machineNotRight() {
+        return machine != null && !availableMachineTypeIds.contains(machine.getId());
+    }
+
+    public int getGroupNotRightCount() {
+        int res = 0;
+        if (group1 != null && !availableGroupIds.contains(group1.getId()))
+            res++;
+        if (group2 != null && !availableGroupIds.contains(group2.getId()))
+            res++;
+        if (group3 != null && !availableGroupIds.contains(group3.getId()))
+            res++;
+        return res;
+    }
+
+    public int getSameGroupCount() {
+        int res = 0;
+        if (group2 != null && group2 == group1)
+            res++;
+        if (group3 != null && group3 == group1)
+            res++;
+        if (group3 != null && group3 == group2)
+            res++;
+        return res;
     }
 }

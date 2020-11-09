@@ -190,7 +190,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     // 需要重新安排
                     subOrders.add(new SubOrder(outputSubOrder.getId(), outputOrder.getId(),
                             outputSubOrder.getDurationTimeInHour(), inputOrder.getNeedMemberCount(),
-                            inputOrder.getAvailableGroupIdList(), inputOrder.getAvailableMachineTypeIdList(),
+                            inputOrder.getAvailableGroupIds(), inputOrder.getAvailableMachineTypeIds(),
                             calculateTimeGrain(insertTime, inputOrder.getDeadline())));
                 else {
                     // 保存不需要重排的子订单
@@ -238,12 +238,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         Integer deadlineTimeGrain = calculateTimeGrain(startTime, deadline);
         while (remainHours > subOrderMaxNeedTime) {
             subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), subOrderMaxNeedTime,
-                    order.getNeedMemberCount(), order.getAvailableGroupIdList(), order.getAvailableMachineTypeIdList(),
+                    order.getNeedMemberCount(), order.getAvailableGroupIds(), order.getAvailableMachineTypeIds(),
                     deadlineTimeGrain));
             remainHours -= subOrderMaxNeedTime;
         }
         subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), remainHours,
-                order.getNeedMemberCount(), order.getAvailableGroupIdList(), order.getAvailableMachineTypeIdList(),
+                order.getNeedMemberCount(), order.getAvailableGroupIds(), order.getAvailableMachineTypeIds(),
                 deadlineTimeGrain));
         return subOrders;
     }
