@@ -13,9 +13,9 @@ public class ResourceAddVo {
 
     Integer type;
 
-    String resourceName;
+    String name;
 
-    Integer resourceCount;
+    Integer number;
 
     Integer shift;
 }
