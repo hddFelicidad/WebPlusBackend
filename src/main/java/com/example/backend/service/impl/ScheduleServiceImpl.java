@@ -222,7 +222,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 以小时为单位
         int totalTimeSlotHour = 0;
         for (ScheduleInputDto.Order order : orders)
-            totalTimeSlotHour+= order.getNeedHour() / subOrderMaxNeedTime + 1;
+            totalTimeSlotHour += order.getNeedHour() / subOrderMaxNeedTime + 1;
+        totalTimeSlotHour *= 2;
 
         List<TimeSlot> timeSlots = new ArrayList<>(totalTimeSlotHour);
         for (int i = 0; i < totalTimeSlotHour; i++)
