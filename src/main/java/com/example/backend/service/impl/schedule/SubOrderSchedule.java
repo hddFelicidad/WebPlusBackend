@@ -26,9 +26,9 @@ public class SubOrderSchedule {
     @ProblemFactCollectionProperty
     private List<Machine> machineList;
 
-    @ValueRangeProvider(id = "timeGrainRange")
+    @ValueRangeProvider(id = "timeSlotRange")
     @ProblemFactCollectionProperty
-    private List<Integer> timeGrainList;
+    private List<TimeSlot> timeSlotList;
 
     @PlanningEntityCollectionProperty
     private List<SubOrder> subOrderList;
@@ -37,11 +37,11 @@ public class SubOrderSchedule {
     private HardSoftScore score;
 
     public SubOrderSchedule(int startHourOfDay, List<Group> groupList, List<Machine> machineList,
-            List<Integer> timeGrainList, List<SubOrder> subOrderList) {
+            List<TimeSlot> timeSlotList, List<SubOrder> subOrderList) {
         this.startHourOfDay = startHourOfDay;
         this.groupList = groupList;
         this.machineList = machineList;
-        this.timeGrainList = timeGrainList;
+        this.timeSlotList = timeSlotList;
         this.subOrderList = subOrderList;
     }
 

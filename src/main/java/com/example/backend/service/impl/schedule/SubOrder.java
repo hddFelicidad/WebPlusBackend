@@ -32,8 +32,8 @@ public class SubOrder {
     @PlanningVariable(valueRangeProviderRefs = "machineRange")
     private Machine machine;
 
-    @PlanningVariable(valueRangeProviderRefs = "timeGrainRange")
-    private Integer timeGrain;
+    @PlanningVariable(valueRangeProviderRefs = "timeSlotRange")
+    private TimeSlot timeSlot;
 
     public SubOrder(String id, String orderId, Integer needHour, Integer needMemberCount,
             HashSet<String> availableGroupIds, HashSet<String> availableMachineTypeIds, Integer deadLineTimeGrain) {
@@ -55,17 +55,6 @@ public class SubOrder {
         if (group3 != null)
             groupIdList.add(group3.getId());
         return groupIdList;
-    }
-
-    public int getTotalMemberCount() {
-        int count = 0;
-        if (group1 != null)
-            count += group1.getMemberCount();
-        if (group2 != null)
-            count += group2.getMemberCount();
-        if (group3 != null)
-            count += group3.getMemberCount();
-        return count;
     }
 
     public boolean machineNotRight() {
@@ -92,5 +81,33 @@ public class SubOrder {
         if (group3 != null && group3 == group2)
             res++;
         return res;
+    }
+
+    public int memberCountNotEnoughCount() {
+        int count = 0;
+        if (group1 != null)
+            count += group1.getMemberCount();
+        if (group2 != null)
+            count += group2.getMemberCount();
+        if (group3 != null)
+            count += group3.getMemberCount();
+        if (count < needMemberCount)
+            return needMemberCount - count;
+        return 0;
+    }
+
+    public int groupCannotWorkCount() {
+        int count = 0;
+        if (group1 != null && group1.canWorkIn(timeSlot.getTime().getHour(), needHour))
+            count++;
+        if (group2 != null && group2.canWorkIn(timeSlot.getTime().getHour(), needHour))
+            count++;
+        if (group3 != null && group3.canWorkIn(timeSlot.getTime().getHour(), needHour))
+            count++;
+        return count;
+    }
+
+    public boolean ddlExceed() {
+        return timeSlot != null && deadLineTimeGrain < timeSlot.getIndex();
     }
 }

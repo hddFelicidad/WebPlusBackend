@@ -25,11 +25,10 @@ public class SubOrderEasyScoreCalculator { // implements EasyScoreCalculator<Sub
             if (a.getGroup3() != null && !a.getAvailableGroupIds().contains(a.getGroup3().getId()))
                 hardScore--;
             // 小组总人数不满足订单要求
-            if (a.getTotalMemberCount() < a.getNeedMemberCount())
-                hardScore -= a.getNeedMemberCount() - a.getTotalMemberCount();
+            hardScore -= a.memberCountNotEnoughCount();
             // 小组工作时间不符合
-            if (a.getTimeGrain() != null) {
-                int startHourOfDay = (schedule.getStartHourOfDay() + a.getTimeGrain()) % 24;
+            if (a.getTimeSlot() != null) {
+                int startHourOfDay = (schedule.getStartHourOfDay() + a.getTimeSlot().getIndex()) % 24;
                 if (!groupCanWork(a.getGroup1(), startHourOfDay, a))
                     hardScore--;
                 if (!groupCanWork(a.getGroup2(), startHourOfDay, a))
@@ -40,9 +39,9 @@ public class SubOrderEasyScoreCalculator { // implements EasyScoreCalculator<Sub
 
             for (SubOrder b : schedule.getSubOrderList())
                 // 时间交叉
-                if (!a.getId().equals(b.getId()) && a.getTimeGrain() != null && b.getTimeGrain() != null
-                        && a.getTimeGrain() <= b.getTimeGrain()
-                        && a.getTimeGrain() + a.getNeedHour() > b.getTimeGrain()) {
+                if (!a.getId().equals(b.getId()) && a.getTimeSlot() != null && b.getTimeSlot() != null
+                        && a.getTimeSlot().getIndex() <= b.getTimeSlot().getIndex()
+                        && a.getTimeSlot().getIndex() + a.getNeedHour() > b.getTimeSlot().getIndex()) {
                     // 占用相同的小组
                     int overlapGroupCount = sameGroupCount(a, b);
                     if (overlapGroupCount >= 1)
@@ -53,7 +52,7 @@ public class SubOrderEasyScoreCalculator { // implements EasyScoreCalculator<Sub
                 }
 
             // 超过ddl
-            if (a.getTimeGrain() != null && a.getTimeGrain() + a.getNeedHour() > a.getDeadLineTimeGrain())
+            if (a.getTimeSlot() != null && a.getTimeSlot().getIndex() > a.getDeadLineTimeGrain())
                 softScore--;
         }
         return HardSoftScore.of(hardScore, softScore);
