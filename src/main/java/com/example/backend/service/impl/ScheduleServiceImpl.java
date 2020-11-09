@@ -1,5 +1,6 @@
 package com.example.backend.service.impl;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -152,7 +153,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         startTimeCalendar.setTime(startTime);
 
         // Time grain
-        List<TimeSlot> timeSlots = gettimeSlots(startTime, orders);
+        List<TimeSlot> timeSlots = getTimeSlots(startTime, orders);
 
         // 划分子订单
         List<SubOrder> subOrders = new ArrayList<>();
@@ -180,7 +181,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 需要考虑当前子订单全部完成
         List<ScheduleInputDto.Order> orders = input.getOrders();
         orders.add(urgentOrder);
-        List<TimeSlot> timeSlots = gettimeSlots(insertTime, orders);
+        List<TimeSlot> timeSlots = getTimeSlots(insertTime, orders);
 
         // 需要排程的子订单 初始值先加入紧急子订单
         List<SubOrder> subOrders = splitOrder(urgentOrder, insertTime, subOrderMaxNeedTime);
@@ -216,7 +217,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         solverJob = solverManager.solve(problemId, schedule);
     }
 
-    private List<TimeSlot> gettimeSlots(Date startTime, List<ScheduleInputDto.Order> orders) {
+    private List<TimeSlot> getTimeSlots(Date startTime, List<ScheduleInputDto.Order> orders) {
         // 开始时间必须对齐时间粒度 或者简单地对齐7点与19点
         // 以小时为单位
         int totalNeedHour = 0;
@@ -250,7 +251,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     private Integer calculateTimeGrain(Date startTime, Date time) {
-        return (int) ((time.getTime() - startTime.getTime()) / 1000L / 60L / 60L);
+        return (int) ((time.getTime() - startTime.getTime()) / subOrderMaxNeedTime / 1000L / 60L / 60L);
     }
 
     private ScheduleOutputDto createOutputDto(Map<String, List<ScheduleOutputDto.SubOrder>> fixedSubOrders,
@@ -276,11 +277,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (SubOrder subOrder : solution.getSubOrderList()) {
             String orderId = subOrder.getOrderId();
             ScheduleOutputDto.Order outputOrder = orderMap.get(orderId);
-            Date subOrderStartTime = new Date(
-                    startTime.getTime() + subOrder.getTimeSlot().getIndex() * 60L * 60L * 1000L);
+            Date subOrderStartTime = (subOrder.getTimeSlot() != null)
+                    ? Date.from(subOrder.getTimeSlot().getTime().atZone(ZoneId.systemDefault()).toInstant())
+                    : null;
             ScheduleOutputDto.SubOrder outputSubOrder = new ScheduleOutputDto.SubOrder(subOrder.getId(),
                     subOrderStartTime, subOrder.getNeedHour(), subOrder.getGroupIdList(),
-                    subOrder.getMachine().getId());
+                    (subOrder.getMachine() != null) ? subOrder.getMachine().getId() : null);
             outputOrder.getSubOrders().add(outputSubOrder);
         }
         return res;
