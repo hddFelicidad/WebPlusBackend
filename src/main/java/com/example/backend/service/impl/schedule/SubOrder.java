@@ -58,7 +58,7 @@ public class SubOrder {
     }
 
     public boolean machineNotRight() {
-        return machine != null && !availableMachineTypeIds.contains(machine.getId());
+        return machine != null && !availableMachineTypeIds.contains(machine.getMachineId());
     }
 
     public int getGroupNotRightCount() {
