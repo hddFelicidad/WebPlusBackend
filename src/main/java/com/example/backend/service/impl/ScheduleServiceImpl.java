@@ -295,9 +295,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             HashSet<SubOrderSchedulePo> subOrderPos = new HashSet<>();
             OrderSchedulePo orderPo = new OrderSchedulePo(null, order.getId(), subOrderPos);
             for (ScheduleOutputDto.SubOrder subOrder : order.getSubOrders())
-                subOrderPos.add(
-                        new SubOrderSchedulePo(null, subOrder.getId(), new Timestamp(subOrder.getStartTime().getTime()),
-                                subOrder.getDurationTimeInHour(), subOrder.getGroupIdList(), subOrder.getMachineId()));
+                subOrderPos.add(new SubOrderSchedulePo(null, subOrder.getId(),
+                        subOrder.getStartTime() == null ? null : new Timestamp(subOrder.getStartTime().getTime()),
+                        subOrder.getDurationTimeInHour(), subOrder.getGroupIdList(), subOrder.getMachineId()));
             res.add(orderPo);
         }
         return res;

@@ -56,8 +56,12 @@ public class ScheduleServiceTest {
     }
 
     @Test
-    void getActualInput(){
-        scheduleInitService.getScheduleInput();
+    void getActualInput() throws ParseException {
+        ScheduleInputDto input = scheduleInitService.getScheduleInput();
+
+        serviceImpl.schedule(input, dateFormat.parse("2017-11-3 07"));
+        ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
+        assert (output.getOrders().size() != 0);
     }
 
     private ScheduleInputDto genSimpleInput() throws ParseException {
@@ -101,11 +105,11 @@ public class ScheduleServiceTest {
     }
 
     @Test
-    void loadSolutionTest(){
-        OrderSchduleRepository mockOSR=mock(OrderSchduleRepository.class);
-        List<OrderSchedulePo> orderSchedulePos=new ArrayList<>();
+    void loadSolutionTest() {
+        OrderSchduleRepository mockOSR = mock(OrderSchduleRepository.class);
+        List<OrderSchedulePo> orderSchedulePos = new ArrayList<>();
         when(mockOSR.findAll()).thenReturn(orderSchedulePos);
-        assert(serviceImpl.loadSolution()!=null);
+        assert (serviceImpl.loadSolution() != null);
 
     }
 }
