@@ -6,15 +6,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.example.backend.data.OrderSchduleRepository;
 import com.example.backend.dto.ScheduleInputDto;
 import com.example.backend.dto.ScheduleOutputDto;
 import com.example.backend.dto.TimeIntervalDto;
 
+import com.example.backend.po.OrderSchedulePo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import lombok.var;
+
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 public class ScheduleServiceTest {
@@ -22,6 +27,8 @@ public class ScheduleServiceTest {
 
     @Autowired
     ScheduleServiceImpl serviceImpl;
+
+
 
     @Test
     void syncSchedule() throws ParseException {
@@ -84,5 +91,14 @@ public class ScheduleServiceTest {
                 new ScheduleInputDto.Order("416153", "订单416153", false, 8, 11, Arrays.asList("g1", "g15", "g16", "g40"),
                         Arrays.asList("mt1", "mt3", "mt4"), dateFormat.parse("2020-11-4 14")));
         return input;
+    }
+
+    @Test
+    void loadSolutionTest(){
+        OrderSchduleRepository mockOSR=mock(OrderSchduleRepository.class);
+        List<OrderSchedulePo> orderSchedulePos=new ArrayList<>();
+        when(mockOSR.findAll()).thenReturn(orderSchedulePos);
+        assert(serviceImpl.loadSolution()!=null);
+
     }
 }
