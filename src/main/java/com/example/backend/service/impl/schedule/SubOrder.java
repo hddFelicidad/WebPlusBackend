@@ -88,9 +88,9 @@ public class SubOrder {
 
     public int groupCannotWorkCount() {
         int count = 0;
-        if (group1 != null && group1.canWorkIn(timeSlot.getTime().getHour(), needHour))
+        if (group1 != null && !group1.canWork(timeSlot.getTime().getHour() == 7))
             count++;
-        if (group2 != null && group2.canWorkIn(timeSlot.getTime().getHour(), needHour))
+        if (group2 != null && !group2.canWork(timeSlot.getTime().getHour() == 7))
             count++;
         return count;
     }

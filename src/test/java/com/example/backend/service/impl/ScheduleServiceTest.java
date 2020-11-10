@@ -92,13 +92,13 @@ public class ScheduleServiceTest {
         input.setGroups(groups);
         input.setMachines(machines);
         input.setOrders(orders);
-        orders.add(new ScheduleInputDto.Order("413095", "订单413095", false, 12, 8,
+        orders.add(new ScheduleInputDto.Order("413095", "订单413095", false, 24, 8,
                 new HashSet<>(Arrays.asList("g5", "g9", "g1", "g12")), new HashSet<>(Arrays.asList("mt1", "mt2")),
                 dateFormat.parse("2020-11-5 10")));
-        orders.add(new ScheduleInputDto.Order("414837", "订单414837", false, 12, 8,
+        orders.add(new ScheduleInputDto.Order("414837", "订单414837", false, 36, 8,
                 new HashSet<>(Arrays.asList("g3", "g14", "g16", "g40")), new HashSet<>(Arrays.asList("mt2", "mt3")),
                 dateFormat.parse("2020-11-5 12")));
-        orders.add(new ScheduleInputDto.Order("416153", "订单416153", false, 12, 10,
+        orders.add(new ScheduleInputDto.Order("416153", "订单416153", false, 48, 10,
                 new HashSet<>(Arrays.asList("g1", "g15", "g16", "g40")),
                 new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-5 14")));
         return input;

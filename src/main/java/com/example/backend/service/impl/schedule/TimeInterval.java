@@ -20,4 +20,9 @@ public class TimeInterval {
     public boolean contains(TimeInterval interval) {
         return startHourOfDay <= interval.startHourOfDay && interval.endHourOfDay <= endHourOfDay;
     }
+
+    @Override
+    public String toString() {
+        return "[" + startHourOfDay + "," + endHourOfDay + "]";
+    }
 }

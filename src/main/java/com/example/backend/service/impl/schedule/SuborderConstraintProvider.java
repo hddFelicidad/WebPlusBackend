@@ -61,6 +61,6 @@ public class SuborderConstraintProvider implements ConstraintProvider {
 
     private Constraint ddlExceed(ConstraintFactory constraintFactory) {
         return constraintFactory.from(SubOrder.class).filter(SubOrder::ddlExceed).penalize("ddlExceed",
-                HardSoftScore.ONE_HARD);
+                HardSoftScore.ONE_SOFT);
     }
 }

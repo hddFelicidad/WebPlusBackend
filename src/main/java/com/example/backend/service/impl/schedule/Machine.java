@@ -11,4 +11,9 @@ public class Machine {
     private String id;
     private String name;
     private String machineId;
+
+    @Override
+    public String toString() {
+        return "{ " + id + ", " + machineId + " }";
+    }
 }
