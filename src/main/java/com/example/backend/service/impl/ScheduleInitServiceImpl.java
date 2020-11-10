@@ -14,6 +14,7 @@ import com.example.backend.service.ScheduleInitService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.service.TimerService;
 import com.example.backend.service.impl.controllerWS.erpService.BomEntity;
+import com.example.backend.vo.ResponseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,12 +39,13 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
     LegacySystemService legacySystemService;
 
     @Override
-    public void scheduleInit(Date startDate) {
+    public ResponseVO scheduleInit(Date startDate) {
         System.out.println("Start to init schedule ...");
         ScheduleInputDto input = new ScheduleInputDto(getGroupInput(), getMachineInput(), getOrderInput());
         scheduleService.schedule(input, startDate);
         ScheduleOutputDto scheduleOutputDto = scheduleService.waitForScheduleOutput();
         System.out.println("End of init schedule.");
+        return ResponseVO.buildSuccess();
     }
 
     @Override

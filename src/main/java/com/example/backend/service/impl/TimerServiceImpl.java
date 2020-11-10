@@ -4,7 +4,9 @@ import java.sql.Timestamp;
 
 import com.example.backend.data.TimerRepository;
 import com.example.backend.po.TimerPo;
+import com.example.backend.service.ScheduleInitService;
 import com.example.backend.service.TimerService;
+import com.example.backend.vo.ResponseVO;
 import com.example.backend.vo.TimerVo;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +18,14 @@ import lombok.var;
 public class TimerServiceImpl implements TimerService {
     @Autowired
     TimerRepository repository;
+    @Autowired
+    ScheduleInitService scheduleInitService;
 
     @Override
-    public void updateTimer(TimerVo vo) {
+    public ResponseVO updateTimer(TimerVo vo) {
         repository.deleteAll();
         repository.save(new TimerPo(null, new Timestamp(vo.getInitTime().getTime())));
+        return scheduleInitService.scheduleInit(vo.getInitTime());
     }
 
     @Override
