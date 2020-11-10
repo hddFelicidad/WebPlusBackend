@@ -26,10 +26,9 @@ public class TimerServiceTest {
     @Test
     void updateTimerTest() {
         TimerVo vo=new TimerVo();
-        vo.setRate(2.0);
         vo.setInitTime(new Date());
         Timestamp ts=new Timestamp(1604912845);
-        TimerPo tp=new TimerPo(1,ts, 2.0);
+        TimerPo tp=new TimerPo(1,ts);
         TimerRepository mockTimer =mock(TimerRepository.class);
         when(mockTimer.save(tp)).thenReturn(null);
 
