@@ -61,7 +61,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Scheduled(fixedRate = 3000)
     private void fixedRateJob() {
-        tryGetScheduleOutput();
+        if (solverJob != null)
+            tryGetScheduleOutput();
     }
 
     @Override
