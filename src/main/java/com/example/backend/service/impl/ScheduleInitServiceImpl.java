@@ -43,8 +43,6 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
         System.out.println("Start to init schedule ...");
         ScheduleInputDto input = new ScheduleInputDto(getGroupInput(), getMachineInput(), getOrderInput());
         scheduleService.schedule(input, startDate);
-        ScheduleOutputDto scheduleOutputDto = scheduleService.waitForScheduleOutput();
-        System.out.println("End of init schedule.");
         return ResponseVO.buildSuccess();
     }
 

@@ -279,6 +279,10 @@ public class ResourceServiceImpl implements ResourceService {
      * @throws ParseException
      */
     public ResponseVO getResourceLoad(String s, String e, String flag) throws ParseException {
+        if(scheduleService.tryGetScheduleOutput() == null){
+            return ResponseVO.buildFailure("排程暂未完成！");
+        }
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
@@ -420,6 +424,10 @@ public class ResourceServiceImpl implements ResourceService {
      * @throws ParseException
      */
     public ResponseVO getResourceOccupy(String s, String e) throws ParseException {
+        if(scheduleService.tryGetScheduleOutput() == null){
+            return ResponseVO.buildFailure("排程暂未完成！");
+        }
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date startDate = simpleDateFormat.parse(s);
@@ -602,6 +610,10 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     public ResponseVO getResourceOccupyInfo(String s, String e) throws ParseException {
+        if(scheduleService.tryGetScheduleOutput() == null){
+            return ResponseVO.buildFailure("排程暂未完成！");
+        }
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);

@@ -1,5 +1,6 @@
 package com.example.backend.controller;
 
+import com.example.backend.vo.ResponseVO;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,8 +20,8 @@ public class TimerController {
     TimerService service;
 
     @PostMapping()
-    public void put(@RequestBody TimerVo entity) {
-        service.updateTimer(entity);
+    public ResponseVO put(@RequestBody TimerVo entity) {
+        return service.updateTimer(entity);
     }
 
     @GetMapping()
