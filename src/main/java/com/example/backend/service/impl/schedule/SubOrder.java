@@ -27,8 +27,6 @@ public class SubOrder {
     private Group group1;
     @PlanningVariable(valueRangeProviderRefs = "groupRange", nullable = true)
     private Group group2;
-    @PlanningVariable(valueRangeProviderRefs = "groupRange", nullable = true)
-    private Group group3;
 
     @PlanningVariable(valueRangeProviderRefs = "machineRange")
     private Machine machine;
@@ -53,8 +51,6 @@ public class SubOrder {
             groupIdList.add(group1.getId());
         if (group2 != null)
             groupIdList.add(group2.getId());
-        if (group3 != null)
-            groupIdList.add(group3.getId());
         return groupIdList;
     }
 
@@ -68,18 +64,12 @@ public class SubOrder {
             res++;
         if (group2 != null && !availableGroupIds.contains(group2.getId()))
             res++;
-        if (group3 != null && !availableGroupIds.contains(group3.getId()))
-            res++;
-        return res;
+        return res << 1;
     }
 
     public int getSameGroupCount() {
         int res = 0;
         if (group2 != null && group2 == group1)
-            res++;
-        if (group3 != null && group3 == group1)
-            res++;
-        if (group3 != null && group3 == group2)
             res++;
         return res;
     }
@@ -90,8 +80,6 @@ public class SubOrder {
             count += group1.getMemberCount();
         if (group2 != null)
             count += group2.getMemberCount();
-        if (group3 != null)
-            count += group3.getMemberCount();
         if (count < needMemberCount)
             return needMemberCount - count;
         return 0;
@@ -103,12 +91,19 @@ public class SubOrder {
             count++;
         if (group2 != null && group2.canWorkIn(timeSlot.getTime().getHour(), needHour))
             count++;
-        if (group3 != null && group3.canWorkIn(timeSlot.getTime().getHour(), needHour))
-            count++;
         return count;
     }
 
     public boolean ddlExceed() {
         return timeSlot != null && deadLineTimeGrain < timeSlot.getIndex();
+    }
+
+    public boolean groupConflict(SubOrder other) {
+        boolean res = false;
+        if (group1 != null)
+            res |= (group1 == other.group1 || group1 == other.group2);
+        if (group2 != null)
+            res |= (group2 == other.group1 || group2 == other.group2);
+        return res;
     }
 }
