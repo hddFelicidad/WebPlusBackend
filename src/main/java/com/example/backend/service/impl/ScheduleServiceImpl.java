@@ -192,7 +192,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             for (ScheduleOutputDto.SubOrder outputSubOrder : outputOrder.getSubOrders()) {
                 if (outputSubOrder.getEndTime().after(insertTime))
                     // 需要重新安排
-                    subOrders.add(new SubOrder(outputSubOrder.getId(), outputOrder.getId(),
+                    subOrders.add(new SubOrder(outputSubOrder.getId(), outputOrder.getId(), inputOrder.getUrgent(),
                             outputSubOrder.getDurationTimeInHour(), inputOrder.getNeedMemberCount(),
                             inputOrder.getAvailableGroupIds(), inputOrder.getAvailableMachineTypeIds(),
                             calculateTimeGrain(insertTime, inputOrder.getDeadline())));
@@ -240,12 +240,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         int remainHours = order.getNeedHour();
         Integer deadlineTimeGrain = calculateTimeGrain(startTime, deadline);
         while (remainHours > subOrderMaxNeedTime) {
-            subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), subOrderMaxNeedTime,
-                    order.getNeedMemberCount(), order.getAvailableGroupIds(), order.getAvailableMachineTypeIds(),
-                    deadlineTimeGrain));
+            subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), order.getUrgent(),
+                    subOrderMaxNeedTime, order.getNeedMemberCount(), order.getAvailableGroupIds(),
+                    order.getAvailableMachineTypeIds(), deadlineTimeGrain));
             remainHours -= subOrderMaxNeedTime;
         }
-        subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), remainHours,
+        subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), order.getUrgent(), remainHours,
                 order.getNeedMemberCount(), order.getAvailableGroupIds(), order.getAvailableMachineTypeIds(),
                 deadlineTimeGrain));
         return subOrders;

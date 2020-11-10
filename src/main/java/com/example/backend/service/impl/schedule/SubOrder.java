@@ -34,10 +34,11 @@ public class SubOrder {
     @PlanningVariable(valueRangeProviderRefs = "timeSlotRange")
     private TimeSlot timeSlot;
 
-    public SubOrder(String id, String orderId, Integer needHour, Integer needMemberCount,
+    public SubOrder(String id, String orderId, Boolean urgent, Integer needHour, Integer needMemberCount,
             HashSet<String> availableGroupIds, HashSet<String> availableMachineTypeIds, Integer deadLineTimeGrain) {
         this.id = id;
         this.orderId = orderId;
+        this.urgent = urgent;
         this.needHour = needHour;
         this.needMemberCount = needMemberCount;
         this.availableGroupIds = availableGroupIds;
