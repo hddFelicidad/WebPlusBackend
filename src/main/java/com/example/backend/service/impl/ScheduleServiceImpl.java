@@ -220,13 +220,13 @@ public class ScheduleServiceImpl implements ScheduleService {
     private List<TimeSlot> getTimeSlots(Date startTime, List<ScheduleInputDto.Order> orders) {
         // 开始时间必须对齐时间粒度 或者简单地对齐7点与19点
         // 以小时为单位
-        int totalNeedHour = 0;
+        int totalTimeSlotHour = 0;
         for (ScheduleInputDto.Order order : orders)
-            totalNeedHour += order.getNeedHour();
-        int timeSlotCount = totalNeedHour / subOrderMaxNeedTime + 10;
+            totalTimeSlotHour += order.getNeedHour() / subOrderMaxNeedTime + 1;
+        totalTimeSlotHour *= 2;
 
-        List<TimeSlot> timeSlots = new ArrayList<>(timeSlotCount);
-        for (int i = 0; i < timeSlotCount; i++)
+        List<TimeSlot> timeSlots = new ArrayList<>(totalTimeSlotHour);
+        for (int i = 0; i < totalTimeSlotHour; i++)
             timeSlots.add(new TimeSlot(i, new Date(startTime.getTime() + i * subOrderMaxNeedTime * 1000L * 60L * 60L)
                     .toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()));
         return timeSlots;
