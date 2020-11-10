@@ -236,9 +236,6 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     private List<SubOrder> splitOrder(ScheduleInputDto.Order order, Date startTime, int subOrderMaxNeedTime) {
-        // TODO:
-        if (order.getNeedMemberCount() <= 3)
-            return new ArrayList<>();
         List<SubOrder> subOrders = new ArrayList<>();
         int suborderIndex = 0;
         Date deadline = order.getDeadline();
