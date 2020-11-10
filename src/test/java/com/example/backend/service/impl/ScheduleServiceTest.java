@@ -59,7 +59,7 @@ public class ScheduleServiceTest {
     void getActualInput() throws ParseException {
         ScheduleInputDto input = scheduleInitService.getScheduleInput();
 
-        serviceImpl.schedule(input, dateFormat.parse("2017-11-3 07"));
+        serviceImpl.schedule(input, dateFormat.parse("2018-10-31 07"));
         ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
     }
