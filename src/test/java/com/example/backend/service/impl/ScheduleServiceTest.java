@@ -94,7 +94,7 @@ public class ScheduleServiceTest {
         orders.add(new ScheduleInputDto.Order("414837", "订单414837", false, 12, 8,
                 new HashSet<>(Arrays.asList("g3", "g14", "g16", "g40")), new HashSet<>(Arrays.asList("mt2", "mt3")),
                 dateFormat.parse("2020-11-5 12")));
-        orders.add(new ScheduleInputDto.Order("416153", "订单416153", false, 12, 11,
+        orders.add(new ScheduleInputDto.Order("416153", "订单416153", false, 12, 10,
                 new HashSet<>(Arrays.asList("g1", "g15", "g16", "g40")),
                 new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-5 14")));
         return input;
