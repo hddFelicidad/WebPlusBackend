@@ -82,13 +82,21 @@ public class InitTable {
         if(machines.isEmpty()){
             System.out.println("Machine init begin ...");
             List<ResourceEntity> resourceInfoList = legacySystemService.getResourceTeamInfo();
+            int id = 10000;
             for(ResourceEntity resourceInfo: resourceInfoList){
                 if(resourceInfo.getResourceName().equals("线体")){
                     String machineName = resourceInfo.getResourceId();
-                    String machineId = machineName.substring(4);
-                    if(machineId.startsWith("0")){
-                        machineId = machineName.substring(5);
+                    String machineId;
+                    if(machineName.startsWith("line")){
+                        machineId = machineName.substring(4);
+                        if(machineId.startsWith("0")){
+                            machineId = machineName.substring(5);
+                        }
+                    }else{
+                        machineId = String.valueOf(id);
+                        id++;
                     }
+
                     int count = Integer.parseInt(resourceInfo.getResourceNum());
 
                     for(int i = 0; i < count; i++){

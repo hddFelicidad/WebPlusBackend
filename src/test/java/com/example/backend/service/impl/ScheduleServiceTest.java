@@ -12,8 +12,8 @@ import com.example.backend.dto.ScheduleInputDto;
 import com.example.backend.dto.ScheduleOutputDto;
 import com.example.backend.dto.TimeIntervalDto;
 
-import com.example.backend.init.InitSchedule;
 import com.example.backend.po.OrderSchedulePo;
+import com.example.backend.service.ScheduleInitService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,7 +32,7 @@ public class ScheduleServiceTest {
     @Autowired
     ScheduleServiceImpl serviceImpl;
     @Autowired
-    InitSchedule initSchedule;
+    ScheduleInitService scheduleInitService;
 
     @Test
     void syncSchedule() throws ParseException {
@@ -57,7 +57,7 @@ public class ScheduleServiceTest {
 
     @Test
     void getActualInput(){
-        initSchedule.getScheduleInput();
+        scheduleInitService.getScheduleInput();
     }
 
     private ScheduleInputDto genSimpleInput() throws ParseException {

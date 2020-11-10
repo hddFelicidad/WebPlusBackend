@@ -15,7 +15,6 @@ public class InitBean {
     public void init(){
         System.out.println("Init begin ...");
         table.tableInit();
-//        schedule.scheduleInit();
         System.out.println("Init end ...");
     }
 }
