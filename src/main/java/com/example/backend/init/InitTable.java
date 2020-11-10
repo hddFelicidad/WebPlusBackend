@@ -29,17 +29,15 @@ public class InitTable {
     LegacySystemService legacySystemService;
 
     public void tableInit(){
-        System.out.println("Group init begin ...");
         groupInit();
-        System.out.println("Machine init begin ...");
         machineInit();
-        System.out.println("Order init begin ...");
         orderInit();
     }
 
     public void groupInit(){
         var groups = groupRepository.findAll();
         if(groups.isEmpty()){
+            System.out.println("Group init begin ...");
             List<ResourceEntity> resourceInfoList = legacySystemService.getResourceTeamInfo();
             List<CalendarEntity> calendarInfoList = legacySystemService.getCalendarInfo();
             for(ResourceEntity resourceInfo: resourceInfoList){
@@ -80,12 +78,14 @@ public class InitTable {
                     groupRepository.save(groupPo);
                 }
             }
+            System.out.println("Group init end ...");
         }
     }
 
     public void machineInit(){
         var machines = machineRepository.findAll();
         if(machines.isEmpty()){
+            System.out.println("Machine init begin ...");
             List<ResourceEntity> resourceInfoList = legacySystemService.getResourceTeamInfo();
             for(ResourceEntity resourceInfo: resourceInfoList){
                 if(resourceInfo.getResourceName().equals("线体")){
@@ -103,18 +103,21 @@ public class InitTable {
                     }
                 }
             }
+            System.out.println("Machine init end ...");
         }
     }
 
     public void orderInit(){
         var orders = orderRepository.findAll();
         if(orders.isEmpty()){
+            System.out.println("Order init begin ...");
             List<OrderEntity> orderInfoList = legacySystemService.getAllOrders();
             for(OrderEntity orderInfo: orderInfoList){
                 OrderPo orderPo = new OrderPo(orderInfo.getId(), orderInfo.getMaterialId(),
                         orderInfo.getNumber().intValue(), orderInfo.getDdl().toGregorianCalendar().getTime());
                 orderRepository.save(orderPo);
             }
+            System.out.println("Order init end ...");
         }
     }
 }

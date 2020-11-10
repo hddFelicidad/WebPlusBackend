@@ -11,11 +11,14 @@ import com.example.backend.dto.ScheduleInputDto;
 import com.example.backend.dto.ScheduleOutputDto;
 import com.example.backend.dto.TimeIntervalDto;
 
+import com.example.backend.init.InitSchedule;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import lombok.var;
+
+import javax.persistence.Table;
 
 @SpringBootTest
 public class ScheduleServiceTest {
@@ -26,6 +29,8 @@ public class ScheduleServiceTest {
 
     @Autowired
     ScheduleServiceImpl serviceImpl;
+    @Autowired
+    InitSchedule initSchedule;
 
     @Test
     void syncSchedule() throws ParseException {
@@ -46,6 +51,10 @@ public class ScheduleServiceTest {
                         new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-4 12")));
         output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
+    }
+
+    private ScheduleInputDto getActualInput(){
+        return initSchedule.getScheduleInput();
     }
 
     private ScheduleInputDto genSimpleInput() throws ParseException {
