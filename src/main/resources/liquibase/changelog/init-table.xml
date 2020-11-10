@@ -7,13 +7,48 @@
 
 
     <changeSet id="20201104" author="wzy">
-        <!--<createTable tableName="dh_project_category" remarks="项目类型表">-->
-            <!--<column name="id" type="varchar(64)" remarks="项目类型id">-->
+        <!--<createTable tableName="GroupPo" >-->
+            <!--<column name="id" type="int(11)" >-->
                 <!--<constraints primaryKey="true" nullable="false"/>-->
             <!--</column>-->
-            <!--<column name="name" type="varchar(255)" remarks="类目类型名称"/>-->
-            <!--<column name="status" type="int(11)" remarks="状态。1正常，2删除"/>-->
-            <!--<column name="remark" type="varchar(255)" remarks="备注"/>-->
+            <!--<column name="groupName" type="varchar(255)" />-->
+            <!--<column name="groupId" type="varchar(255)" />-->
+            <!--<column name="memberCount" type="int(11)" />-->
+            <!--<column name="className" type="varchar(255)" />-->
+        <!--</createTable>-->
+
+        <!--<createTable tableName="MachinePo" >-->
+            <!--<column name="id" type="int(11)" >-->
+                <!--<constraints primaryKey="true" nullable="false"/>-->
+            <!--</column>-->
+            <!--<column name="machineName" type="varchar(255)" />-->
+            <!--<column name="machineId" type="varchar(255)" />-->
+        <!--</createTable>-->
+
+        <!--<createTable tableName="OrderPo" >-->
+            <!--<column name="orderId" type="varchar(64)" >-->
+                <!--<constraints primaryKey="true" nullable="false"/>-->
+            <!--</column>-->
+            <!--<column name="itemId" type="varchar(255)" />-->
+            <!--<column name="itemCount" type="int(11)" />-->
+            <!--<column name="deadLine" type="date" />-->
+        <!--</createTable>-->
+
+        <!--<createTable tableName="OrderSchedulePo" >-->
+            <!--<column name="id" type="int(11)" >-->
+                <!--<constraints primaryKey="true" nullable="false"/>-->
+            <!--</column>-->
+            <!--<column name="orderId" type="varchar(255)" />-->
+            <!--<column name="suborders" type="varchar(255)" />-->
+        <!--</createTable>-->
+
+
+        <!--<createTable tableName="TimerPo" >-->
+            <!--<column name="id" type="int(11)" >-->
+                <!--<constraints primaryKey="true" nullable="false"/>-->
+            <!--</column>-->
+            <!--<column name="initTime" type="timestamp(50)" />-->
+            <!--<column name="rate" type="double" />-->
         <!--</createTable>-->
     </changeSet>
 
