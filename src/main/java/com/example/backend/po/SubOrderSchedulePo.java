@@ -1,6 +1,6 @@
 package com.example.backend.po;
 
-import java.util.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 import javax.persistence.ElementCollection;
@@ -25,7 +25,7 @@ public class SubOrderSchedulePo {
 
     private String subOrderId;
 
-    private Date startTime;
+    private Timestamp startTime;
 
     private Integer durationTimeInHour;
 
