@@ -15,6 +15,7 @@
 
 	<properties>
 		<java.version>8</java.version>
+		<druid-version>1.2.2</druid-version>
 	</properties>
 
 	<dependencies>
@@ -66,6 +67,33 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!--Logback+slf4j依赖-->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+		<!--Swagger相关依赖-->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.6.1</version>
+		</dependency>
+		<!--Druid相关依赖-->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>${druid-version}</version>
+		</dependency>
+		<!--liquibase相关依赖-->
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
