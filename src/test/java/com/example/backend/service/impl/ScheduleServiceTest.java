@@ -56,8 +56,9 @@ public class ScheduleServiceTest {
         assert (output.getOrders().size() != 0);
     }
 
-    private ScheduleInputDto getActualInput(){
-        return initSchedule.getScheduleInput();
+    @Test
+    void getActualInput(){
+        initSchedule.getScheduleInput();
     }
 
     private ScheduleInputDto genSimpleInput() throws ParseException {
