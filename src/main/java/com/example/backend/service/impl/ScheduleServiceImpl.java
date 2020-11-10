@@ -109,6 +109,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public ScheduleOutputDto waitForScheduleOutput() {
+        if (solutionDto != null) return solutionDto;
         SubOrderSchedule solution = null;
         try {
             solution = solverJob.getFinalBestSolution();

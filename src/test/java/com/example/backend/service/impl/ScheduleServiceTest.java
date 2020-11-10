@@ -106,6 +106,12 @@ public class ScheduleServiceTest {
 
     @Test
     void loadSolutionTest() {
+        ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
+        assert (output.getOrders().size() != 0);
+    }
+
+    @Test
+    void mockLoadSolutionTest() {
         OrderSchduleRepository mockOSR = mock(OrderSchduleRepository.class);
         List<OrderSchedulePo> orderSchedulePos = new ArrayList<>();
         when(mockOSR.findAll()).thenReturn(orderSchedulePos);
