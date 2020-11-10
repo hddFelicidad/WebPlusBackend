@@ -44,12 +44,7 @@ public class InitTable {
                 if(resourceInfo.getResourceName().equals("班组")){
                     String groupName = resourceInfo.getResourceId();
                     int memberCount = Integer.parseInt(resourceInfo.getResourceNum());
-                    String groupId = "";
-                    if(groupName.startsWith("UKK")){
-                        groupId = "0";
-                    }else{
-                        groupId = groupName.substring(0, groupName.indexOf("组"));
-                    }
+                    String groupId = groupName.substring(0, groupName.indexOf("组"));
                     String className = "";
 
                     int classCode = 0;
