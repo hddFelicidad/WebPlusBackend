@@ -10,8 +10,7 @@ import com.example.backend.service.LegacySystemService;
 import com.example.backend.service.ResourceService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.util.*;
-import com.example.backend.vo.ResourceOccupyVo;
-import com.example.backend.vo.ResponseVO;
+import com.example.backend.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,6 +60,18 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     @Override
+    public ResponseVO getResourceOccupyInfo(String date) {
+        String startDate = date + " 00:00:00";
+        String endDate = date + " 23:59:59";
+        try{
+            return getResourceOccupyInfo(startDate, endDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
     public ResponseVO getResourceLoadByDay(String startDate, String endDate) {
         startDate += " 00:00:00";
         endDate += " 00:00:00";
@@ -82,6 +93,180 @@ public class ResourceServiceImpl implements ResourceService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public ResponseVO getResourceInfo() {
+        List<ResourceGetVo> groupList = new ArrayList<>();
+        List<ResourceGetVo> machineList = new ArrayList<>();
+        List<GroupPo> groupPoList = groupRepository.findAll();
+        List<MachinePo> machinePoList = machineRepository.findAll();
+        List<String> machineIdList = new ArrayList<>();
+        List<String> machineNameList = new ArrayList<>();
+        List<String> machineDateList = new ArrayList<>();
+        List<Integer> machineCountList = new ArrayList<>();
+
+        for(GroupPo groupPo: groupPoList){
+            int shift = -1;
+            switch (groupPo.getClassName()){
+                case "DAY":
+                    shift = 2;
+                    break;
+                case "NIGHT":
+                    shift = 3;
+                    break;
+                case "ALL":
+                    shift = 1;
+                    break;
+                default:
+                    break;
+            }
+            ResourceGetVo groupInfo = new ResourceGetVo("hr" + groupPo.getGroupId(),
+                    groupPo.getAddDate(), groupPo.getGroupName(), groupPo.getMemberCount(), shift);
+            groupList.add(groupInfo);
+        }
+
+        for(MachinePo machinePo: machinePoList){
+            String machineId = machinePo.getMachineId();
+            if(machineIdList.indexOf(machineId) == -1){
+                machineIdList.add(machineId);
+                machineNameList.add(machinePo.getMachineName());
+                machineDateList.add(machinePo.getAddDate());
+                machineCountList.add(1);
+            }else{
+                machineCountList.set(machineIdList.indexOf(machineId), machineCountList.get(machineIdList.indexOf(machineId)) + 1);
+            }
+        }
+        for(int i = 0; i < machineIdList.size(); i++){
+            ResourceGetVo machineInfo = new ResourceGetVo("ln" + machineIdList.get(i),
+                    machineDateList.get(i), machineNameList.get(i), machineCountList.get(i), 1);
+            machineList.add(machineInfo);
+        }
+
+        Map<String, List<ResourceGetVo>> content = new HashMap<>();
+        content.put("human", groupList);
+        content.put("device", machineList);
+
+        return ResponseVO.buildSuccess(content);
+    }
+
+    @Override
+    public ResponseVO updateResourceInfo(ResourceUpdateVo resourceInfo) {
+        String resourceId = resourceInfo.getId();
+        if(resourceId.startsWith("ln")){
+            String machineId = resourceId.substring(2);
+            List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineId(machineId);
+            if(machinePoList.size() > resourceInfo.getNumber()){
+                for(int i = resourceInfo.getNumber(); i < machinePoList.size(); i++){
+                    machineRepository.delete(machinePoList.get(i));
+                }
+            }else if(machinePoList.size() == resourceInfo.getNumber()){
+                for(MachinePo machinePo: machinePoList){
+                    machinePo.setMachineName(resourceInfo.getName());
+                    machineRepository.save(machinePo);
+                }
+            }else{
+                for(MachinePo machinePo: machinePoList){
+                    machinePo.setMachineName(resourceInfo.getName());
+                    machineRepository.save(machinePo);
+                }
+                for(int i = 0; i < resourceInfo.getNumber()-machinePoList.size(); i++){
+                    MachinePo machinePo = new MachinePo(null, resourceInfo.getName(), machineId,
+                            machinePoList.get(0).getAddDate());
+                    machineRepository.save(machinePo);
+                }
+            }
+            return ResponseVO.buildSuccess();
+        }else if(resourceId.startsWith("hr")){
+            String groupId = resourceId.substring(2);
+            String className = "";
+            switch (resourceInfo.getShift()){
+                case 1:
+                    className = "ALL";
+                    break;
+                case 2:
+                    className = "DAY";
+                    break;
+                case 3:
+                    className = "NIGHT";
+                    break;
+                default:
+                    break;
+            }
+
+            GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
+            groupPo.setGroupName(resourceInfo.getName());
+            groupPo.setMemberCount(resourceInfo.getNumber());
+            groupPo.setClassName(className);
+            groupRepository.save(groupPo);
+            return ResponseVO.buildSuccess();
+        }else{
+            return ResponseVO.buildFailure();
+        }
+    }
+
+    @Override
+    public ResponseVO addResource(ResourceAddVo resourceInfo) {
+        int type = resourceInfo.getType();
+        if(type == 1){
+            String className = "";
+            switch (resourceInfo.getShift()){
+                case 1:
+                    className = "ALL";
+                    break;
+                case 2:
+                    className = "DAY";
+                    break;
+                case 3:
+                    className = "NIGHT";
+                    break;
+                default:
+                    break;
+            }
+            GroupPo groupPo = new GroupPo(null, resourceInfo.getName(), "",
+                    resourceInfo.getNumber(), className, resourceInfo.getDate());
+            GroupPo newGroup = groupRepository.save(groupPo);
+            newGroup.setGroupId(String.valueOf(newGroup.getId()));
+            groupRepository.save(newGroup);
+            Map<String, String> content = new HashMap<>();
+            content.put("id", "hr" + newGroup.getGroupId());
+            return ResponseVO.buildSuccess(content);
+        }else if(type == 2){
+            int count = resourceInfo.getNumber();
+            int machineId = -1;
+            for(int i = 0; i< count; i++){
+                MachinePo machinePo = new MachinePo(null, resourceInfo.getName(), "", resourceInfo.getDate());
+                MachinePo newMachine = machineRepository.save(machinePo);
+                if(machineId == -1)
+                    machineId = newMachine.getId();
+                newMachine.setMachineId(String.valueOf(machineId));
+                machineRepository.save(newMachine);
+            }
+            Map<String, String> content = new HashMap<>();
+            content.put("id", "ln" + machineId);
+            return ResponseVO.buildSuccess(content);
+        }else {
+            return ResponseVO.buildFailure();
+        }
+    }
+
+    @Override
+    public ResponseVO deleteResource(String resourceId) {
+        if(resourceId.startsWith("ln")){
+            String machineId = resourceId.substring(2);
+            List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineId(machineId);
+            for(MachinePo machinePo: machinePoList){
+                machineRepository.delete(machinePo);
+            }
+            return ResponseVO.buildSuccess();
+        }else if(resourceId.startsWith("hr")){
+            String groupId = resourceId.substring(2);
+            GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
+            groupRepository.delete(groupPo);
+            return ResponseVO.buildSuccess();
+        }else{
+            return ResponseVO.buildFailure();
+        }
     }
 
 
@@ -211,8 +396,8 @@ public class ResourceServiceImpl implements ResourceService {
         Map<String, Object> content = new HashMap<>();
         content.put("human_percent", groupLoad);
         content.put("device_percent", machineLoad);
-        content.put("resource_list", resourceList);
-        content.put("table_data", tableData);
+        content.put("resourceList", resourceList);
+        content.put("tableData", tableData);
 
         return ResponseVO.buildSuccess(content);
     }
@@ -226,6 +411,7 @@ public class ResourceServiceImpl implements ResourceService {
      */
     public ResponseVO getResourceOccupy(String s, String e) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
 
@@ -295,22 +481,22 @@ public class ResourceServiceImpl implements ResourceService {
                         groupOccupyHourList.set(groupIndex, groupOccupyHourList.get(groupIndex) + durationTime);
                         //更新对应人力资源第一次被占用的时间
                         if(groupFirstOccupyTime.get(groupIndex).equals("")){
-                            groupFirstOccupyTime.set(groupIndex, simpleDateFormat.format(start_date));
+                            groupFirstOccupyTime.set(groupIndex, dateFormat.format(start_date));
                         }else{
-                            if(start_date.before(simpleDateFormat.parse(groupFirstOccupyTime.get(groupIndex)))){
-                                groupFirstOccupyTime.set(groupIndex, simpleDateFormat.format(start_date));
+                            if(start_date.before(dateFormat.parse(groupFirstOccupyTime.get(groupIndex)))){
+                                groupFirstOccupyTime.set(groupIndex, dateFormat.format(start_date));
                             }
                         }
                         //更新对应人力资源最后一次被占用的时间
                         if(groupLastOccupyTime.get(groupIndex).equals("")){
-                            groupLastOccupyTime.set(groupIndex, simpleDateFormat.format(end_date));
+                            groupLastOccupyTime.set(groupIndex, dateFormat.format(end_date));
                         }else{
-                            if(end_date.after(simpleDateFormat.parse(groupLastOccupyTime.get(groupIndex)))){
-                                groupLastOccupyTime.set(groupIndex, simpleDateFormat.format(end_date));
+                            if(end_date.after(dateFormat.parse(groupLastOccupyTime.get(groupIndex)))){
+                                groupLastOccupyTime.set(groupIndex, dateFormat.format(end_date));
                             }
                         }
                         ResourceOccupyVo productGroupOccupy = new ResourceOccupyVo(productIdBegin, "", "",
-                                simpleDateFormat.format(start_date), String.valueOf(durationTime * 60),
+                                dateFormat.format(start_date), durationTime * 60,
                                 itemName, color, itemId, groupIndex + groupIdBegin);
                         productIdBegin++;
                         resourceOccupyVoList.add(productGroupOccupy);
@@ -324,22 +510,22 @@ public class ResourceServiceImpl implements ResourceService {
                     machineOccupyHourList.set(machineIndex, machineOccupyHourList.get(machineIndex) + durationTime);
                     //更新对应机器资源第一次被占用的时间
                     if(machineFirstOccupyTime.get(machineIndex).equals("")){
-                        machineFirstOccupyTime.set(machineIndex, simpleDateFormat.format(start_date));
+                        machineFirstOccupyTime.set(machineIndex, dateFormat.format(start_date));
                     }else{
-                        if(start_date.before(simpleDateFormat.parse(machineFirstOccupyTime.get(machineIndex)))){
-                            machineFirstOccupyTime.set(machineIndex, simpleDateFormat.format(start_date));
+                        if(start_date.before(dateFormat.parse(machineFirstOccupyTime.get(machineIndex)))){
+                            machineFirstOccupyTime.set(machineIndex, dateFormat.format(start_date));
                         }
                     }
                     //更新对应机器资源最后一次被占用的时间
                     if(machineLastOccupyTime.get(machineIndex).equals("")){
-                        machineLastOccupyTime.set(machineIndex, simpleDateFormat.format(end_date));
+                        machineLastOccupyTime.set(machineIndex, dateFormat.format(end_date));
                     }else{
-                        if(end_date.after(simpleDateFormat.parse(machineLastOccupyTime.get(machineIndex)))){
-                            machineLastOccupyTime.set(machineIndex, simpleDateFormat.format(end_date));
+                        if(end_date.after(dateFormat.parse(machineLastOccupyTime.get(machineIndex)))){
+                            machineLastOccupyTime.set(machineIndex, dateFormat.format(end_date));
                         }
                     }
                     ResourceOccupyVo productMachineOccupy = new ResourceOccupyVo(productIdBegin, "", "",
-                            simpleDateFormat.format(start_date), String.valueOf(durationTime * 60),
+                            dateFormat.format(start_date), durationTime * 60,
                             itemName, color, itemId, machineIndex + machineIdBegin);
                     productIdBegin++;
                     resourceOccupyVoList.add(productMachineOccupy);
@@ -355,8 +541,8 @@ public class ResourceServiceImpl implements ResourceService {
             int duration = 0;
             if(groupOccupyHourList.get(i) > 0){
                 duration = commonUtil.getDistanceHour(
-                        simpleDateFormat.parse(groupFirstOccupyTime.get(i)),
-                        simpleDateFormat.parse(groupLastOccupyTime.get(i)));
+                        dateFormat.parse(groupFirstOccupyTime.get(i)),
+                        dateFormat.parse(groupLastOccupyTime.get(i)));
             }
             duration = Math.min(duration, 24);
             ResourceOccupyVo groupOccupy = new ResourceOccupyVo();
@@ -364,10 +550,11 @@ public class ResourceServiceImpl implements ResourceService {
             groupOccupy.setResource(groupName);
             groupOccupy.setPercent(percent);
             groupOccupy.setStart_date(start);
-            groupOccupy.setDuration(String.valueOf(60 * duration));
+            groupOccupy.setDuration(60 * duration);
             groupOccupy.setText("");
             groupOccupy.setColor("darkturquoise");
             groupOccupy.setProduct_id("");
+            groupOccupy.setParent(0);
             resourceOccupyVoList.add(groupOccupy);
         }
 
@@ -379,8 +566,8 @@ public class ResourceServiceImpl implements ResourceService {
             int duration = 0;
             if(machineOccupyHourList.get(j) > 0){
                 duration = commonUtil.getDistanceHour(
-                        simpleDateFormat.parse(machineFirstOccupyTime.get(j)),
-                        simpleDateFormat.parse(machineLastOccupyTime.get(j)));
+                        dateFormat.parse(machineFirstOccupyTime.get(j)),
+                        dateFormat.parse(machineLastOccupyTime.get(j)));
             }
             duration = Math.min(duration, 24);
             ResourceOccupyVo machineOccupy = new ResourceOccupyVo();
@@ -388,14 +575,91 @@ public class ResourceServiceImpl implements ResourceService {
             machineOccupy.setResource(machineName);
             machineOccupy.setPercent(percent);
             machineOccupy.setStart_date(start);
-            machineOccupy.setDuration(String.valueOf(60 * duration));
+            machineOccupy.setDuration(60 * duration);
             machineOccupy.setText("");
             machineOccupy.setColor("darkturquoise");
             machineOccupy.setProduct_id("");
+            machineOccupy.setParent(0);
             resourceOccupyVoList.add(machineOccupy);
         }
 
-        return ResponseVO.buildSuccess(resourceOccupyVoList);
+        Map<String, Object> content = new HashMap<>();
+        Map<String, Object> tasks = new HashMap<>();
+        tasks.put("data", resourceOccupyVoList);
+        tasks.put("links", new ArrayList<>());
+        content.put("tasks", tasks);
+        return ResponseVO.buildSuccess(content);
+    }
+
+    public ResponseVO getResourceOccupyInfo(String s, String e) throws ParseException {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date startDate = simpleDateFormat.parse(s);
+        Date endDate = simpleDateFormat.parse(e);
+
+        //获取在起止时间内的排程订单
+        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
+                startDate, endDate);
+        if(orderList.size() == 0){
+            return ResponseVO.buildFailure("起止时间内无正在处理的订单");
+        }
+        //一些初始化工作
+        List<GroupPo> groupPoList = groupRepository.findAll();
+        List<MachinePo> machinePoList = machineRepository.findAll();
+        ArrayList<String> groupIdList = new ArrayList<>();              //所有人力资源Id
+        ArrayList<ResourceOccupyInfoVo> groupOccupyInfoList = new ArrayList<>();
+        ArrayList<String> machineIdList = new ArrayList<>();
+        ArrayList<ResourceOccupyInfoVo> machineOccupyInfoList = new ArrayList<>();
+        for(GroupPo group: groupPoList){
+            groupIdList.add(group.getGroupId());
+            ResourceOccupyInfoVo groupOccupyInfo = new ResourceOccupyInfoVo();
+            List<ResourceOccupyInfoVo.OccupyInfo> occupyInfoList = new ArrayList<>();
+            groupOccupyInfo.setResourceId("hr" + group.getGroupId());
+            groupOccupyInfo.setResourceName(group.getGroupName());
+            groupOccupyInfo.setOccupyInfoList(occupyInfoList);
+            groupOccupyInfoList.add(groupOccupyInfo);
+        }
+        for(MachinePo machine: machinePoList){
+            machineIdList.add(String.valueOf(machine.getId()));
+            ResourceOccupyInfoVo machineOccupyInfo = new ResourceOccupyInfoVo();
+            List<ResourceOccupyInfoVo.OccupyInfo> occupyInfoList = new ArrayList<>();
+            machineOccupyInfo.setResourceId("hr" + machine.getId());
+            machineOccupyInfo.setResourceName(machine.getMachineName());
+            machineOccupyInfo.setOccupyInfoList(occupyInfoList);
+            machineOccupyInfoList.add(machineOccupyInfo);
+        }
+
+        for(ScheduleOutputDto.Order order: orderList){
+            String orderId = order.getId();
+            List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
+            for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
+                String subOrderId = subOrder.getId();
+                Date startTime = subOrder.getStartTime();
+                Date endTime = subOrder.getEndTime();
+                if(!(startTime.before(startDate) || startTime.after(endDate))){
+                    List<String> occupyGroupIdList = subOrder.getGroupIdList();
+                    for(String occupyGroupId: occupyGroupIdList){
+                        int occupyGroupIndex = groupIdList.indexOf(occupyGroupId);
+                        List<ResourceOccupyInfoVo.OccupyInfo> occupyInfoList = groupOccupyInfoList.get(occupyGroupIndex).getOccupyInfoList();
+                        ResourceOccupyInfoVo.OccupyInfo occupyInfo = new ResourceOccupyInfoVo.OccupyInfo(
+                                simpleDateFormat.format(startTime), simpleDateFormat.format(endTime),
+                                orderId, subOrderId);
+                        occupyInfoList.add(occupyInfo);
+                    }
+                    String occupyMachineId = subOrder.getMachineId();
+                    int occupyMachineIndex = machineIdList.indexOf(occupyMachineId);
+                    List<ResourceOccupyInfoVo.OccupyInfo> occupyInfoList = machineOccupyInfoList.get(occupyMachineIndex).getOccupyInfoList();
+                    ResourceOccupyInfoVo.OccupyInfo occupyInfo = new ResourceOccupyInfoVo.OccupyInfo(
+                            simpleDateFormat.format(startTime), simpleDateFormat.format(endTime),
+                            orderId, subOrderId);
+                    occupyInfoList.add(occupyInfo);
+                }
+            }
+        }
+
+        Map<String, Object> content = new HashMap<>();
+        content.put("human", groupOccupyInfoList);
+        content.put("device", machineOccupyInfoList);
+        return ResponseVO.buildSuccess(content);
     }
 
     public String checkForDelay(ScheduleOutputDto.Order order){
@@ -417,10 +681,10 @@ public class ResourceServiceImpl implements ResourceService {
 
     /**
      * 获取人力资源在某一个月内的可分配工作时间
-     * @param date
-     * @param workdayList
-     * @param workHour
-     * @return
+     * @param date 日期
+     * @param workdayList 工作日
+     * @param workHour 工作时间
+     * @return 当月可分配工作总时间
      */
     public int getWorkHourByMonth(Date date, List<Integer> workdayList, int workHour){
         List<String> dayOfWeekList = Arrays.asList("星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六");

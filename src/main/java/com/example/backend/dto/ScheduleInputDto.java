@@ -1,6 +1,7 @@
 package com.example.backend.dto;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -56,11 +57,11 @@ public class ScheduleInputDto {
         /**
          * 可用的小组的Id列表
          */
-        private List<String> availableGroupIdList;
+        private HashSet<String> availableGroupIds;
         /**
          * 可用的机器的Id列表
          */
-        private List<String> availableMachineTypeIdList;
+        private HashSet<String> availableMachineTypeIds;
         private Date deadline;
     }
 }
