@@ -68,22 +68,19 @@ public class SubOrder {
         return res << 1;
     }
 
-    public int getSameGroupCount() {
-        int res = 0;
+    public boolean useSameGroup() {
         if (group2 != null && group2 == group1)
-            res++;
-        return res;
+            return true;
+        return false;
     }
 
-    public int memberCountNotEnoughCount() {
+    public boolean memberCountNotEnough() {
         int count = 0;
         if (group1 != null)
             count += group1.getMemberCount();
         if (group2 != null)
             count += group2.getMemberCount();
-        if (count < needMemberCount)
-            return needMemberCount - count;
-        return 0;
+        return needMemberCount > count;
     }
 
     public int groupCannotWorkCount() {

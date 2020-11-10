@@ -109,7 +109,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public ScheduleOutputDto waitForScheduleOutput() {
-        if (solutionDto != null) return solutionDto;
+        if (solutionDto != null)
+            return solutionDto;
         SubOrderSchedule solution = null;
         try {
             solution = solverJob.getFinalBestSolution();
@@ -235,6 +236,9 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     private List<SubOrder> splitOrder(ScheduleInputDto.Order order, Date startTime, int subOrderMaxNeedTime) {
+        // TODO:
+        if (order.getNeedMemberCount() <= 3)
+            return new ArrayList<>();
         List<SubOrder> subOrders = new ArrayList<>();
         int suborderIndex = 0;
         Date deadline = order.getDeadline();

@@ -51,6 +51,7 @@
 
     <logger name="org.drools" level="warn"/>
     <logger name="org.optaplanner" level="debug"/>
+    <logger name="org.springframework" level="error"/>
 
     <!--应用到那里 root：这个项目都适用-->
     <root level="debug">

@@ -27,13 +27,13 @@ public class SuborderConstraintProvider implements ConstraintProvider {
     }
 
     private Constraint useSameGroup(ConstraintFactory constraintFactory) {
-        return constraintFactory.from(SubOrder.class).penalize("useSameGroup", HardSoftScore.ONE_HARD,
-                SubOrder::getSameGroupCount);
+        return constraintFactory.from(SubOrder.class).filter(SubOrder::useSameGroup).penalize("useSameGroup",
+                HardSoftScore.ONE_HARD);
     }
 
     private Constraint groupMemberCountNotEnough(ConstraintFactory constraintFactory) {
-        return constraintFactory.from(SubOrder.class).penalize("groupMemberCountNotEnough", HardSoftScore.ONE_HARD,
-                SubOrder::memberCountNotEnoughCount);
+        return constraintFactory.from(SubOrder.class).filter(SubOrder::memberCountNotEnough)
+                .penalize("groupMemberCountNotEnough", HardSoftScore.ONE_HARD);
     }
 
     private Constraint groupCannotWork(ConstraintFactory constraintFactory) {
