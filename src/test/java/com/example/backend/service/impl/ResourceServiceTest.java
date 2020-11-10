@@ -7,9 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 
 import static java.lang.Integer.max;
 import static org.junit.jupiter.api.Assertions.assertEquals;

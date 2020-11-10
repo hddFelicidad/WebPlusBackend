@@ -7,8 +7,7 @@ import javax.annotation.PostConstruct;
 
 @Component
 public class InitBean {
-    @Autowired
-    private InitSchedule schedule;
+
     @Autowired
     private InitTable table;
 

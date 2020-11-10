@@ -146,7 +146,6 @@ public class OrderServiceImpl implements OrderService {
      */
     public ResponseVO getProductOccupy(String s, String e, String productId) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
         List<ScheduleOutputDto.Order> orderListByProductId = orderUtil.getOrderByProductId(scheduleService.tryGetScheduleOutput().getOrders(), productId);
