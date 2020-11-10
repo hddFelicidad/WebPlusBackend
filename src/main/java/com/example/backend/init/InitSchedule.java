@@ -104,16 +104,12 @@ public class InitSchedule {
     }
 
     public ScheduleInputDto getScheduleInput() {
-        TimerVo timerVo = timerService.getTimer();
-        Date startTime = new Date();
-        if (timerVo != null)
-            startTime = timerService.getTimer().getInitTime();
         return new ScheduleInputDto(getGroupInput(), getMachineInput(), getOrderInput());
     }
 
     /**
      * 获取人力资源信息
-     * 
+     *
      * @return
      */
     public List<ScheduleInputDto.Group> getGroupInput() {
@@ -150,7 +146,7 @@ public class InitSchedule {
 
     /**
      * 获取机器资源
-     * 
+     *
      * @return
      */
     public List<ScheduleInputDto.Machine> getMachineInput() {
@@ -169,7 +165,7 @@ public class InitSchedule {
 
     /**
      * 获取订单
-     * 
+     *
      * @return
      */
     public List<ScheduleInputDto.Order> getOrderInput() {
@@ -185,30 +181,32 @@ public class InitSchedule {
                 int itemCount = eachOrder.getItemCount();
 
                 BomEntity bomEntity = legacySystemService.getBOMById(itemId);
-                int standardOutput = Integer.parseInt(
-                        bomEntity.getStandardOutput().substring(0, bomEntity.getStandardOutput().indexOf("个")));
-                int workCount = bomEntity.getWorkerCount();
-                List<String> groupResourceList = bomEntity.getMainResource();
-                List<String> lineResourceList = bomEntity.getLineResource();
+                if(bomEntity != null){
+                    int standardOutput = Integer.parseInt(
+                            bomEntity.getStandardOutput().substring(0, bomEntity.getStandardOutput().indexOf("个")));
+                    int workCount = bomEntity.getWorkerCount();
+                    List<String> groupResourceList = bomEntity.getMainResource();
+                    List<String> lineResourceList = bomEntity.getLineResource();
 
-                int needHour = itemCount / standardOutput;
+                    int needHour = itemCount / standardOutput;
 
-                List<String> availableGroupList = new ArrayList<>();
-                for (String groupName : groupResourceList) {
-                    GroupPo groupPo = groupRepository.findGroupPoByGroupName(groupName);
-                    if (groupPo != null)
-                        availableGroupList.add(groupPo.getGroupId());
+                    List<String> availableGroupList = new ArrayList<>();
+                    for (String groupName : groupResourceList) {
+                        GroupPo groupPo = groupRepository.findGroupPoByGroupName(groupName);
+                        if (groupPo != null)
+                            availableGroupList.add(groupPo.getGroupId());
+                    }
+                    List<String> availableMachineList = new ArrayList<>();
+                    for (String machineName : lineResourceList) {
+                        List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineName(machineName);
+                        if (!machinePoList.isEmpty())
+                            availableMachineList.add(machinePoList.get(0).getMachineId());
+                    }
+
+                    ScheduleInputDto.Order order = new ScheduleInputDto.Order(orderId, orderName, false, needHour,
+                            workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl);
+                    orderList.add(order);
                 }
-                List<String> availableMachineList = new ArrayList<>();
-                for (String machineName : lineResourceList) {
-                    List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineName(machineName);
-                    if (!machinePoList.isEmpty())
-                        availableMachineList.add(machinePoList.get(0).getMachineId());
-                }
-
-                ScheduleInputDto.Order order = new ScheduleInputDto.Order(orderId, orderName, false, needHour,
-                        workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl);
-                orderList.add(order);
             }
             return orderList;
         }
