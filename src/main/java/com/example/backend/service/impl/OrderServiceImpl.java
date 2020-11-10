@@ -76,6 +76,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public ResponseVO getOrderPlan() {
+        if(scheduleService.tryGetScheduleOutput() == null){
+            return ResponseVO.buildFailure("排程暂未完成！");
+        }
+
         List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderRemake(scheduleService.tryGetScheduleOutput().getOrders());
         List<OrderPlanVo> orderPlanVoList = new ArrayList<>();
         for(ScheduleOutputDto.Order eachOrder: orderScheduleList){
@@ -94,6 +98,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public ResponseVO getOrderPlanProduction() {
+        if(scheduleService.tryGetScheduleOutput() == null){
+            return ResponseVO.buildFailure("排程暂未完成！");
+        }
+
         List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderRemake(scheduleService.tryGetScheduleOutput().getOrders());
         List<OrderProductionVo> orderProductionVoList = new ArrayList<>();
         for(ScheduleOutputDto.Order eachOrder: orderScheduleList) {
@@ -145,6 +153,10 @@ public class OrderServiceImpl implements OrderService {
      * @throws ParseException
      */
     public ResponseVO getProductOccupy(String s, String e, String productId) throws ParseException {
+        if(scheduleService.tryGetScheduleOutput() == null){
+            return ResponseVO.buildFailure("排程暂未完成！");
+        }
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
@@ -244,6 +256,10 @@ public class OrderServiceImpl implements OrderService {
      * @throws ParseException
      */
     public ResponseVO getOrderOccupy(String s, String e) throws ParseException {
+        if(scheduleService.tryGetScheduleOutput() == null){
+            return ResponseVO.buildFailure("排程暂未完成！");
+        }
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         Date startDate = simpleDateFormat.parse(s);
