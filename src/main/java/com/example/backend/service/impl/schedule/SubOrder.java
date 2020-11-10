@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 public class SubOrder {
     private String id;
     private String orderId;
+    private Boolean urgent;
     private Integer needHour;
     private Integer needMemberCount;
     private HashSet<String> availableGroupIds;

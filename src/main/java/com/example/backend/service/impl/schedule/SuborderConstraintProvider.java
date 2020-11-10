@@ -12,7 +12,8 @@ public class SuborderConstraintProvider implements ConstraintProvider {
     public Constraint[] defineConstraints(ConstraintFactory constraintFactory) {
         return new Constraint[] { machineNotRight(constraintFactory), groupNotRight(constraintFactory),
                 useSameGroup(constraintFactory), groupMemberCountNotEnough(constraintFactory),
-                groupCannotWork(constraintFactory), machineConflict(constraintFactory), ddlExceed(constraintFactory) };
+                groupCannotWork(constraintFactory), machineConflict(constraintFactory),
+                ddlExceedUrgent(constraintFactory), ddlExceed(constraintFactory) };
     }
 
     private Constraint machineNotRight(ConstraintFactory constraintFactory) {
@@ -53,8 +54,8 @@ public class SuborderConstraintProvider implements ConstraintProvider {
     }
 
     private Constraint ddlExceedUrgent(ConstraintFactory constraintFactory) {
-        // TODO:
-        return null;
+        return constraintFactory.from(SubOrder.class).filter(s -> s.getUrgent() && s.ddlExceed())
+                .penalize("ddlExceedUrgent", HardSoftScore.ONE_HARD);
     }
 
     private Constraint ddlExceed(ConstraintFactory constraintFactory) {
