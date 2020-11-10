@@ -9,10 +9,14 @@ import javax.annotation.PostConstruct;
 public class InitBean {
     @Autowired
     private InitSchedule schedule;
+    @Autowired
+    private InitTable table;
 
     @PostConstruct
     public void init(){
         System.out.println("Init begin ...");
-        schedule.scheduleInit();
+        table.tableInit();
+//        schedule.scheduleInit();
+        System.out.println("Init end ...");
     }
 }
