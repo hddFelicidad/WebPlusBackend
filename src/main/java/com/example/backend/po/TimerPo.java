@@ -24,6 +24,4 @@ public class TimerPo {
 
     Timestamp initTime;
 
-    Double rate;
-
 }

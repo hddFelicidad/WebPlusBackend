@@ -16,6 +16,4 @@ public class TimerVo {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
     Date initTime;
 
-    /** 系统时间变化率 */
-    Double rate;
 }

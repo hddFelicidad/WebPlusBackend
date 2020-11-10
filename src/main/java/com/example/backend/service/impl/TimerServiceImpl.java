@@ -20,7 +20,7 @@ public class TimerServiceImpl implements TimerService {
     @Override
     public void updateTimer(TimerVo vo) {
         repository.deleteAll();
-        repository.save(new TimerPo(null, new Timestamp(vo.getInitTime().getTime()), vo.getRate()));
+        repository.save(new TimerPo(null, new Timestamp(vo.getInitTime().getTime())));
     }
 
     @Override
@@ -29,7 +29,7 @@ public class TimerServiceImpl implements TimerService {
         if (timers.isEmpty())
             return null;
         var po = timers.get(0);
-        return new TimerVo(po.getInitTime(), po.getRate());
+        return new TimerVo(po.getInitTime());
     }
 
 }
