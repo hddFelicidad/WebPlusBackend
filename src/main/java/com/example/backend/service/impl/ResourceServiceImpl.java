@@ -294,16 +294,25 @@ public class ResourceServiceImpl implements ResourceService {
         SimpleDateFormat monthFormat = new SimpleDateFormat("yyyy-MM");
 
         //一些初始化工作
+        int machine_count = 0;
         List<GroupPo> groupPoList = groupRepository.findAll();          //所有的人力资源
         List<MachinePo> machinePoList = machineRepository.findAll();    //所有的机器资源
         List<Map<String, String>> resourceList = new ArrayList<>();     //所有的资源信息（机器在前，人力在后）
         List<String> resourceIdList = new ArrayList<>();                //所有的资源id（index与上面对应）
+        List<Integer> machineCountList = new ArrayList<>();
         for(MachinePo machinePo: machinePoList){
-            Map<String, String> machineInfo = new HashMap<>();
-            machineInfo.put("id", "ln" + machinePo.getId());
-            machineInfo.put("name", machinePo.getMachineName());
-            resourceList.add(machineInfo);
-            resourceIdList.add("ln" + machinePo.getId());
+            if(resourceIdList.indexOf("ln" + machinePo.getMachineId()) == -1){
+                Map<String, String> machineInfo = new HashMap<>();
+                machineInfo.put("id", "ln" + machinePo.getMachineId());
+                machineInfo.put("name", machinePo.getMachineName());
+                resourceList.add(machineInfo);
+                resourceIdList.add("ln" + machinePo.getMachineId());
+                machineCountList.add(1);
+                machine_count++;
+            }else{
+                int index = resourceIdList.indexOf("ln" + machinePo.getMachineId());
+                machineCountList.set(index, machineCountList.get(index) + 1);
+            }
         }
         for(GroupPo groupPo: groupPoList){
             Map<String, String> groupInfo = new HashMap<>();
@@ -359,21 +368,22 @@ public class ResourceServiceImpl implements ResourceService {
                                 int groupIndex = resourceIdList.indexOf("hr" + occupyGroupId);  //获取对应下标
                                 resourceWorkHourList.set(groupIndex, durationHour + resourceWorkHourList.get(groupIndex));
                             }
-                            String occupyMachineId = subOrder.getMachineId();               //子订单占用的机器资源
-                            int machineIndex = resourceIdList.indexOf("ln" + occupyMachineId);  //获取对应下标
+                            int occupyMachineId = Integer.parseInt(subOrder.getMachineId());               //子订单占用的机器资源
+                            int machineIndex = resourceIdList.indexOf("ln" + machineRepository.findMachinePoById(occupyMachineId).getMachineId());  //获取对应下标
                             resourceWorkHourList.set(machineIndex, durationHour + resourceWorkHourList.get(machineIndex));
                         }
                     }
                 }
 
+
                 List<Integer> resourceLoadList = new ArrayList<>();
-                for(int m = 0; m < machinePoList.size(); m++){
-                    int progress = resourceWorkHourList.get(m) * 100 / 24 / (commonUtil.getDistanceDay(currentStartTime, currentEndTime) + 1);
+                for(int m = 0; m < machine_count; m++){
+                    int progress = resourceWorkHourList.get(m) * 100 / 24 / machineCountList.get(m) /(commonUtil.getDistanceDay(currentStartTime, currentEndTime) + 1);
                     resourceLoadList.add(progress);
-                    machineLoad += progress;
+                    machineLoad += progress * machineCountList.get(m);
 
                 }
-                for(int n = machinePoList.size(); n < resourceIdList.size(); n++){
+                for(int n = machine_count; n < resourceIdList.size(); n++){
                     List<Integer> tmp = Arrays.asList(1, 2, 3, 4, 5);
                     int progress = 0;
                     if(flag.equals("day")){
