@@ -1,6 +1,7 @@
 package com.example.backend.service.impl;
 
 import java.sql.Timestamp;
+import java.time.DayOfWeek;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -40,7 +41,7 @@ import lombok.var;
 @Service
 public class ScheduleServiceImpl implements ScheduleService {
     // 以4个小时为粒度划分子订单
-    static final int subOrderMaxNeedTime = 12;
+    static final int subOrderMaxNeedTime = 4;
 
     @Autowired
     private OrderSchduleRepository orderScheduleRepository;
@@ -226,12 +227,19 @@ public class ScheduleServiceImpl implements ScheduleService {
         int totalTimeSlotHour = 0;
         for (ScheduleInputDto.Order order : orders)
             totalTimeSlotHour += order.getNeedHour() / subOrderMaxNeedTime + 1;
-        totalTimeSlotHour *= 2;
-
+        // totalTimeSlotHour *= 2;
         List<TimeSlot> timeSlots = new ArrayList<>(totalTimeSlotHour);
-        for (int i = 0; i < totalTimeSlotHour; i++)
-            timeSlots.add(new TimeSlot(i, new Date(startTime.getTime() + i * subOrderMaxNeedTime * 1000L * 60L * 60L)
-                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()));
+        for (int i = 0; i < totalTimeSlotHour; i++) {
+            TimeSlot tmpSlot = new TimeSlot(i,
+                    new Date(startTime.getTime() + i * subOrderMaxNeedTime * 1000L * 60L * 60L).toInstant()
+                            .atZone(ZoneId.systemDefault()).toLocalDateTime());
+            // 跳过周末
+            if (tmpSlot.getTime().getDayOfWeek() == DayOfWeek.SATURDAY
+                    || tmpSlot.getTime().getDayOfWeek() == DayOfWeek.SUNDAY)
+                totalTimeSlotHour++;
+            else
+                timeSlots.add(tmpSlot);
+        }
         return timeSlots;
     }
 
