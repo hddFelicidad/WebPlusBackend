@@ -86,8 +86,9 @@ public class OrderUtil {
                     targetSubOrderList.add(secondNewSubOrder);
                 }
                 else{
-                    current.setId(originalOrder.getId() + "_" + subOrderId);
-                    targetSubOrderList.add(current);
+                    ScheduleOutputDto.SubOrder newSubOrder = new ScheduleOutputDto.SubOrder(originalOrder.getId() + "_" + subOrderId,
+                            current.getStartTime(), current.getDurationTimeInHour(), current.getGroupIdList(), current.getMachineId());
+                    targetSubOrderList.add(newSubOrder);
                 }
                 subOrderId++;
             }

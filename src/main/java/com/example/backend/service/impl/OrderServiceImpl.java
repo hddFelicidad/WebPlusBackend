@@ -344,7 +344,7 @@ public class OrderServiceImpl implements OrderService {
         tasks.put("data", orderOccupyVoList);
         tasks.put("links", links);
         content.put("tasks", tasks);
-        content.put("delivery_rate", deliveryCount * 100 / orderList.size() + "%");
+        content.put("delivery_rate", deliveryCount * 100 / orderList.size());
 
         return ResponseVO.buildSuccess(content);
     }
