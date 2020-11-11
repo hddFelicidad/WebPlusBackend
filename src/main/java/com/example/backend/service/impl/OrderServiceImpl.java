@@ -80,7 +80,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseVO.buildFailure("排程暂未完成！");
         }
 
-        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderRemake(scheduleService.tryGetScheduleOutput().getOrders());
+        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderResort(scheduleService.tryGetScheduleOutput().getOrders());
         List<OrderPlanVo> orderPlanVoList = new ArrayList<>();
         for(ScheduleOutputDto.Order eachOrder: orderScheduleList){
             List<ScheduleOutputDto.SubOrder> subOrderList = eachOrder.getSubOrders();
@@ -102,7 +102,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseVO.buildFailure("排程暂未完成！");
         }
 
-        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderRemake(scheduleService.tryGetScheduleOutput().getOrders());
+        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderResort(scheduleService.tryGetScheduleOutput().getOrders());
         List<OrderProductionVo> orderProductionVoList = new ArrayList<>();
         for(ScheduleOutputDto.Order eachOrder: orderScheduleList) {
             List<ScheduleOutputDto.SubOrder> subOrderList = eachOrder.getSubOrders();
