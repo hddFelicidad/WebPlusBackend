@@ -18,9 +18,9 @@ public class OrderUtil {
 
     /**
      * 根据开始时间和结束时间筛选排程订单
-     * @param originalOrderList
-     * @param startDate
-     * @param endDate
+     * @param originalOrderList 原始排程数据
+     * @param startDate 开始时间按
+     * @param endDate 结束时间
      * @return
      */
     public List<ScheduleOutputDto.Order> getOrderByDate(List<ScheduleOutputDto.Order> originalOrderList, Date startDate, Date endDate){
@@ -39,6 +39,27 @@ public class OrderUtil {
                     }
                 }
                 if(within)
+                    targetOrderList.add(order);
+            }
+            return targetOrderList;
+        }
+        return null;
+    }
+
+    /**
+     * 获取截止时间前开始排程的订单
+     * @param originalOrderList 原始排程数据
+     * @param endDate 截止时间
+     * @return
+     */
+    public List<ScheduleOutputDto.Order> getOrderDeliverByDate(List<ScheduleOutputDto.Order> originalOrderList, Date endDate){
+        if(originalOrderList.size() > 0){
+            List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
+            List<ScheduleOutputDto.Order> tmpOrderList = orderResort(originalOrderList);
+            for(ScheduleOutputDto.Order order: tmpOrderList){
+                List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
+                ScheduleOutputDto.SubOrder firstSubOrder = subOrderList.get(0);
+                if(firstSubOrder.getStartTime().before(endDate))
                     targetOrderList.add(order);
             }
             return targetOrderList;

@@ -265,8 +265,8 @@ public class OrderServiceImpl implements OrderService {
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
         //获取在起止时间内的排程订单
-        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
-                startDate, endDate);
+        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderDeliverByDate(scheduleService.tryGetScheduleOutput().getOrders(),
+                endDate);
         if(orderList.size() == 0){
             return ResponseVO.buildFailure("起止时间内无正在处理的订单");
         }
@@ -301,22 +301,21 @@ public class OrderServiceImpl implements OrderService {
             Date dealDate = subOrderList.get(subOrderList.size() - 1).getEndTime();
             orderOccupy.setExpc_date(format.format(dealDate));
 
-            //判断此订单当天是否能准时交付
-            if(dealDate.before(endDate) && dealDate.before(orderPo.getDeadLine()))
+            //判断此订单准时交付
+            if(!dealDate.after(orderPo.getDeadLine()) && !dealDate.after(endDate))
                 deliveryCount++;
 
             int doneTime = 0;
             int totalTime = 0;
 
             for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
-                Date now = new Date();
                 int durationHour = subOrder.getDurationTimeInHour();
                 Date startTime = subOrder.getStartTime();
                 Date endTime = subOrder.getEndTime();
                 totalTime += durationHour;
-                if(startTime.before(now)){
-                    if(now.before(endTime)){
-                        doneTime += commonUtil.getDistanceHour(startTime, now);
+                if(startTime.before(endDate)){
+                    if(endTime.after(endDate)){
+                        doneTime += commonUtil.getDistanceHour(startTime, commonUtil.addStartHour(startDate, 24));
                     }else{
                         doneTime += durationHour;
                     }
