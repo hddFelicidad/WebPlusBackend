@@ -387,6 +387,10 @@ public class ResourceServiceImpl implements ResourceService {
                         //判断是否为当天的子订单
                         if(!(currentStartTime.after(subOrder.getStartTime()) || currentEndTime.before(subOrder.getStartTime()))){
                             int durationHour = subOrder.getDurationTimeInHour();
+                            if(subOrder.getEndTime().after(currentEndTime)){
+                                durationHour = commonUtil.getDistanceHour(subOrder.getStartTime(), currentEndTime) + 1;
+                            }
+
                             List<String> occupyGroupIdList = subOrder.getGroupIdList();     //子订单占用的人力资源
                             for(String occupyGroupId: occupyGroupIdList){
                                 int groupIndex = resourceIdList.indexOf("hr" + occupyGroupId);  //获取对应下标
@@ -506,10 +510,13 @@ public class ResourceServiceImpl implements ResourceService {
                 if(!(startDate.after(subOrder.getStartTime()) || endDate.before(subOrder.getStartTime()))){
                     //子订单开始时间
                     Date start_date = subOrder.getStartTime();
-                    //子订单持续时间
-                    int durationTime = subOrder.getDurationTimeInHour();
                     //子订单结束时间
                     Date end_date = subOrder.getEndTime();
+                    //子订单持续时间
+                    int durationTime = subOrder.getDurationTimeInHour();
+                    if(end_date.after(endDate)){
+                        durationTime = commonUtil.getDistanceHour(start_date, endDate) + 1;
+                    }
 
                     //子订单占用人力资源id列表
                     List<String> occupyGroupIdList = subOrder.getGroupIdList();
@@ -628,6 +635,13 @@ public class ResourceServiceImpl implements ResourceService {
         return ResponseVO.buildSuccess(content);
     }
 
+    /**
+     * 获取资源占用信息
+     * @param s
+     * @param e
+     * @return
+     * @throws ParseException
+     */
     public ResponseVO getResourceOccupyInfo(String s, String e) throws ParseException {
         if(scheduleService.tryGetScheduleOutput() == null){
             return ResponseVO.buildFailure("排程暂未完成！");
@@ -703,6 +717,11 @@ public class ResourceServiceImpl implements ResourceService {
         return ResponseVO.buildSuccess(content);
     }
 
+    /**
+     * 判断订单是否延期
+     * @param order
+     * @return
+     */
     public String checkForDelay(ScheduleOutputDto.Order order){
         String id = order.getId();
         //判断最后一个子订单是否超期

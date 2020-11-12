@@ -25,8 +25,9 @@ public class OrderUtil {
     public List<ScheduleOutputDto.Order> getOrderByDate(List<ScheduleOutputDto.Order> originalOrderList, Date startDate, Date endDate){
         if(originalOrderList.size() > 0){
             List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
-            List<ScheduleOutputDto.Order> tmpOrderList = orderRemake(originalOrderList);
-            for(ScheduleOutputDto.Order order: tmpOrderList){
+//            List<ScheduleOutputDto.Order> tmpOrderList = orderRemake(originalOrderList);
+            orderResort(originalOrderList);
+            for(ScheduleOutputDto.Order order: originalOrderList){
                 List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
                 //订单在当前日期是否有子订单在进行
                 boolean within = false;
