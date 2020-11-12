@@ -59,7 +59,7 @@ public class ScheduleServiceTest {
     void getActualInput() throws ParseException {
         ScheduleInputDto input = scheduleInitService.getScheduleInput();
 
-        serviceImpl.schedule(input, dateFormat.parse("2018-11-4 07"));
+        serviceImpl.schedule(input, dateFormat.parse("2018-11-13 07"));
         ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
     }
@@ -158,17 +158,19 @@ public class ScheduleServiceTest {
     void scheduleTestNight() throws ParseException {
         ScheduleInputDto input = new ScheduleInputDto();
         List<ScheduleInputDto.Group> groups = new ArrayList<>();
-        groups.add(new ScheduleInputDto.Group("g1", "5组-童玲 (5)", 5, eveningShift));
-        // groups.add(new ScheduleInputDto.Group("g1", "5组-童玲 (5)", 5, eveningShift));
+        groups.add(new ScheduleInputDto.Group("g1", "5组-童玲 (5)", 5, morningShift));
+        groups.add(new ScheduleInputDto.Group("g2", "9组-张敏（5）", 5, morningShift));
         List<ScheduleInputDto.Machine> machines = new ArrayList<>();
         machines.add(new ScheduleInputDto.Machine("m1", "line01", "mt1"));
+        machines.add(new ScheduleInputDto.Machine("m2", "line01", "mt1"));
         List<ScheduleInputDto.Order> orders = new ArrayList<>();
         input.setGroups(groups);
         input.setMachines(machines);
         input.setOrders(orders);
-        orders.add(new ScheduleInputDto.Order("413095", "订单413095", false, 12, 4, new HashSet<>(Arrays.asList("g1")),
-                new HashSet<>(Arrays.asList("mt1")), dateFormat.parse("2020-11-10 14")));
-        serviceImpl.schedule(input, dateFormat.parse("2020-11-7 07"));
+        orders.add(
+                new ScheduleInputDto.Order("413095", "订单413095", false, 24, 4, new HashSet<>(Arrays.asList("g1", "g2")),
+                        new HashSet<>(Arrays.asList("mt1")), dateFormat.parse("2020-11-10 10")));
+        serviceImpl.schedule(input, dateFormat.parse("2020-11-9 07"));
         ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
 
