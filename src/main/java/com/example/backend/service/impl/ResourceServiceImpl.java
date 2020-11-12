@@ -432,6 +432,7 @@ public class ResourceServiceImpl implements ResourceService {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
+        int dayDiff = commonUtil.getDistanceDay(startDate, endDate) + 1;
 
         List<ResourceOccupyVo> resourceOccupyVoList = new ArrayList<>();
         //获取在起止时间内的排程订单
@@ -554,7 +555,7 @@ public class ResourceServiceImpl implements ResourceService {
         for(int i = 0; i < groupIdList.size(); i++){
             String groupId = groupIdList.get(i);
             String groupName = groupRepository.findGroupPoByGroupId(groupId).getGroupName();
-            String percent = Math.min(groupOccupyHourList.get(i), 12) * 100 / 12 + "%";
+            String percent = groupOccupyHourList.get(i) * 100 / 12 / dayDiff + "%";
             String start = groupFirstOccupyTime.get(i);
             int duration = 0;
             if(groupOccupyHourList.get(i) > 0){
@@ -562,7 +563,6 @@ public class ResourceServiceImpl implements ResourceService {
                         dateFormat.parse(groupFirstOccupyTime.get(i)),
                         dateFormat.parse(groupLastOccupyTime.get(i)));
             }
-            duration = Math.min(duration, 24);
             ResourceOccupyVo groupOccupy = new ResourceOccupyVo();
             groupOccupy.setId(groupIdBegin + i);
             groupOccupy.setResource(groupName);
@@ -579,7 +579,7 @@ public class ResourceServiceImpl implements ResourceService {
         for(int j = 0; j < machineIdList.size(); j++){
             String machineId = machineIdList.get(j);
             String machineName = machineRepository.findMachinePoById(Integer.parseInt(machineId)).getMachineName();
-            String percent = Math.min(machineOccupyHourList.get(j), 24) * 100 / 24 + "%";
+            String percent = machineOccupyHourList.get(j) * 100 / 24 / dayDiff + "%";
             String start = machineFirstOccupyTime.get(j);
             int duration = 0;
             if(machineOccupyHourList.get(j) > 0){
@@ -587,7 +587,6 @@ public class ResourceServiceImpl implements ResourceService {
                         dateFormat.parse(machineFirstOccupyTime.get(j)),
                         dateFormat.parse(machineLastOccupyTime.get(j)));
             }
-            duration = Math.min(duration, 24);
             ResourceOccupyVo machineOccupy = new ResourceOccupyVo();
             machineOccupy.setId(machineIdBegin + j);
             machineOccupy.setResource(machineName);

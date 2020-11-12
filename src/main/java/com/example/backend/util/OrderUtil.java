@@ -52,14 +52,14 @@ public class OrderUtil {
      * @param endDate 截止时间
      * @return
      */
-    public List<ScheduleOutputDto.Order> getOrderDeliverByDate(List<ScheduleOutputDto.Order> originalOrderList, Date endDate){
+    public List<ScheduleOutputDto.Order> getOrderDeliverByDate(List<ScheduleOutputDto.Order> originalOrderList, Date startDate, Date endDate){
         if(originalOrderList.size() > 0){
             List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
             List<ScheduleOutputDto.Order> tmpOrderList = orderResort(originalOrderList);
             for(ScheduleOutputDto.Order order: tmpOrderList){
                 List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
-                ScheduleOutputDto.SubOrder firstSubOrder = subOrderList.get(0);
-                if(firstSubOrder.getStartTime().before(endDate))
+                ScheduleOutputDto.SubOrder lastSubOrder = subOrderList.get(subOrderList.size() - 1);
+                if(!lastSubOrder.getEndTime().after(endDate) && lastSubOrder.getEndTime().after(startDate))
                     targetOrderList.add(order);
             }
             return targetOrderList;

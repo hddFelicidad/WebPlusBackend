@@ -266,7 +266,7 @@ public class OrderServiceImpl implements OrderService {
         Date endDate = simpleDateFormat.parse(e);
         //获取在起止时间内的排程订单
         List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderDeliverByDate(scheduleService.tryGetScheduleOutput().getOrders(),
-                endDate);
+                startDate, endDate);
         if(orderList.size() == 0){
             return ResponseVO.buildFailure("起止时间内无正在处理的订单");
         }
@@ -302,7 +302,7 @@ public class OrderServiceImpl implements OrderService {
             orderOccupy.setExpc_date(format.format(dealDate));
 
             //判断此订单准时交付
-            if(!dealDate.after(orderPo.getDeadLine()) && !dealDate.after(endDate))
+            if(!dealDate.after(orderPo.getDeadLine()))
                 deliveryCount++;
 
             int doneTime = 0;
