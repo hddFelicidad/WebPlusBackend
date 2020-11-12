@@ -1,19 +1,25 @@
 package com.example.backend.service.impl.schedule;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.score.stream.Constraint;
 import org.optaplanner.core.api.score.stream.ConstraintFactory;
 import org.optaplanner.core.api.score.stream.ConstraintProvider;
 import org.optaplanner.core.api.score.stream.Joiners;
+import org.optaplanner.core.impl.score.stream.uni.DefaultUniConstraintCollector;
 
-public class SuborderConstraintProvider implements ConstraintProvider {
+public class SubOrderConstraintProvider implements ConstraintProvider {
 
     @Override
     public Constraint[] defineConstraints(ConstraintFactory constraintFactory) {
         return new Constraint[] { machineNotRight(constraintFactory), groupNotRight(constraintFactory),
                 useSameGroup(constraintFactory), groupMemberCountNotEnough(constraintFactory),
                 groupCannotWork(constraintFactory), groupConflict(constraintFactory),
-                machineConflict(constraintFactory), ddlExceedUrgent(constraintFactory), ddlExceed(constraintFactory) };
+                machineConflict(constraintFactory), ddlExceedUrgent(constraintFactory), ddlExceed(constraintFactory),
+                softMachineLoadBalance(constraintFactory), softGroupLoadBalance(constraintFactory) };
     }
 
     private Constraint machineNotRight(ConstraintFactory constraintFactory) {
@@ -62,5 +68,91 @@ public class SuborderConstraintProvider implements ConstraintProvider {
     private Constraint ddlExceed(ConstraintFactory constraintFactory) {
         return constraintFactory.from(SubOrder.class).filter(SubOrder::ddlExceed).penalize("ddlExceed",
                 HardSoftScore.ONE_SOFT);
+    }
+
+    // 机器负载均衡
+    private Constraint softMachineLoadBalance(ConstraintFactory constraintFactory) {
+        return constraintFactory.from(SubOrder.class).groupBy(machineLoadBalance(SubOrder::getMachine)).penalize(
+                "softMachineLoadBalance", HardSoftScore.ONE_SOFT,
+                MachineLoadBalanceData::getZeroDeviationSquaredSumRoot);
+    }
+
+    // 员工负载均衡
+    private Constraint softGroupLoadBalance(ConstraintFactory constraintFactory) {
+        // TODO: 测试
+        return constraintFactory.from(SubOrder.class)
+                .groupBy(grouprLoadBalance(SubOrder::getGroup1, SubOrder::getGroup2)).penalize("softGroupLoadBalance",
+                        HardSoftScore.ONE_SOFT, GroupLoadBalanceData::getZeroDeviationSquaredSumRoot);
+    }
+
+    private static DefaultUniConstraintCollector<SubOrder, ?, MachineLoadBalanceData> machineLoadBalance(
+            Function<SubOrder, Machine> getMachine) {
+        return new DefaultUniConstraintCollector<>(MachineLoadBalanceData::new, (resultContainer, subOrder) -> {
+            Machine dev = getMachine.apply(subOrder);
+            return resultContainer.apply(dev);
+        }, resultContainer -> resultContainer);
+    }
+
+    private static DefaultUniConstraintCollector<SubOrder, ?, GroupLoadBalanceData> grouprLoadBalance(
+            Function<SubOrder, Group> getGroup1, Function<SubOrder, Group> getGroup2) {
+        return new DefaultUniConstraintCollector<>(GroupLoadBalanceData::new, (resultContainer, subOrder) -> {
+            Group a = getGroup1.apply(subOrder);
+            Group b = getGroup2.apply(subOrder);
+            return resultContainer.apply(a, b);
+        }, resultContainer -> resultContainer);
+    }
+
+    private static final class MachineLoadBalanceData {
+        private final Map<String, Long> countMap = new LinkedHashMap<>();
+        private long squaredSum = 0L;
+
+        private Runnable apply(Machine dev) {
+            if (dev != null) {
+                long count = countMap.compute(dev.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
+                squaredSum += 2 * count - 1;
+            }
+            return () -> {
+                if (dev != null) {
+                    Long count = countMap.compute(dev.getId(), (key, value) -> (value == 1L) ? null : value - 1L);
+                    squaredSum -= count == null ? 1 : (2 * count + 1);
+                }
+            };
+        }
+
+        public int getZeroDeviationSquaredSumRoot() {
+            return (int) (Math.sqrt((double) squaredSum));
+        }
+    }
+
+    private static final class GroupLoadBalanceData {
+        private final Map<String, Long> countMap = new LinkedHashMap<>();
+        private long squaredSum = 0L;
+
+        private Runnable apply(Group a, Group b) {
+            long deltaA = 0;
+            if (a != null)
+                deltaA += -1 + 2 * countMap.compute(a.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
+            if (b != null)
+                deltaA += -1 + 2 * countMap.compute(b.getId(), (key, value) -> (value == null) ? 1L : value + 1L);
+            squaredSum += deltaA;
+            return () -> {
+                long deltaB = 0;
+                if (a != null)
+                    deltaB += 1 + 2
+                            * nullToZero(countMap.compute(a.getId(), (key, value) -> (value == 1) ? null : value - 1L));
+                if (b != null)
+                    deltaB += 1 + 2
+                            * nullToZero(countMap.compute(b.getId(), (key, value) -> (value == 1) ? null : value - 1L));
+                squaredSum -= deltaB;
+            };
+        }
+
+        private long nullToZero(Long num) {
+            return num == null ? 0L : num;
+        }
+
+        public int getZeroDeviationSquaredSumRoot() {
+            return (int) (Math.sqrt((double) squaredSum));
+        }
     }
 }
