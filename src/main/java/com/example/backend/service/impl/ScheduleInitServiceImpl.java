@@ -4,7 +4,6 @@ import com.example.backend.data.GroupRepository;
 import com.example.backend.data.MachineRepository;
 import com.example.backend.data.OrderRepository;
 import com.example.backend.dto.ScheduleInputDto;
-import com.example.backend.dto.ScheduleOutputDto;
 import com.example.backend.dto.TimeIntervalDto;
 import com.example.backend.po.GroupPo;
 import com.example.backend.po.MachinePo;
