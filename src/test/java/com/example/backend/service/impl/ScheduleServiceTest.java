@@ -175,4 +175,26 @@ public class ScheduleServiceTest {
         assert (output.getOrders().size() != 0);
 
     }
+
+    @Test
+    void averageLoadTest() throws ParseException {
+        ScheduleInputDto input = new ScheduleInputDto();
+        List<ScheduleInputDto.Group> groups = new ArrayList<>();
+        groups.add(new ScheduleInputDto.Group("g1", "5组-童玲 (5)", 5, morningShift));
+        groups.add(new ScheduleInputDto.Group("g2", "9组-张敏（5）", 5, morningShift));
+        groups.add(new ScheduleInputDto.Group("g3", "10组-李敏（5）", 5, morningShift));
+        List<ScheduleInputDto.Machine> machines = new ArrayList<>();
+        machines.add(new ScheduleInputDto.Machine("m1", "line01", "mt1"));
+        List<ScheduleInputDto.Order> orders = new ArrayList<>();
+        input.setGroups(groups);
+        input.setMachines(machines);
+        input.setOrders(orders);
+        orders.add(new ScheduleInputDto.Order("413095", "订单413095", false, 12, 4,
+                new HashSet<>(Arrays.asList("g1", "g2", "g3")), new HashSet<>(Arrays.asList("mt1")),
+                dateFormat.parse("2020-12-10 10")));
+        serviceImpl.schedule(input, dateFormat.parse("2020-11-9 07"));
+        ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
+        assert (output.getOrders().size() != 0);
+    }
+    
 }
