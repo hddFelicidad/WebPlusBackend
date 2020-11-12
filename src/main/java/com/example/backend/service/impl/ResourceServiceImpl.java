@@ -11,7 +11,6 @@ import com.example.backend.service.ResourceService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.util.*;
 import com.example.backend.vo.*;
-import liquibase.pro.packaged.D;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
