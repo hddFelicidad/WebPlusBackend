@@ -267,10 +267,10 @@ public class OrderServiceImpl implements OrderService {
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
         //获取在起止时间内的排程订单
-//        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
-//                startDate, endDate);
-        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderDeliverByDate(scheduleService.tryGetScheduleOutput().getOrders(),
-                endDate);
+        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
+                startDate, endDate);
+//        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderDeliverByDate(scheduleService.tryGetScheduleOutput().getOrders(),
+//                endDate);
         if(orderList.size() == 0){
             return ResponseVO.buildFailure("起止时间内无正在处理的订单");
         }
