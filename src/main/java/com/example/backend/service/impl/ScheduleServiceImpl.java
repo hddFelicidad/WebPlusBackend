@@ -227,7 +227,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         int totalTimeSlotHour = 0;
         for (ScheduleInputDto.Order order : orders)
             totalTimeSlotHour += order.getNeedHour() / subOrderMaxNeedTime + 1;
-        // totalTimeSlotHour *= 2;
+        totalTimeSlotHour /= 3;
         List<TimeSlot> timeSlots = new ArrayList<>(totalTimeSlotHour);
         for (int i = 0; i < totalTimeSlotHour; i++) {
             TimeSlot tmpSlot = new TimeSlot(i,
@@ -236,6 +236,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             // 跳过周末
             if (tmpSlot.getTime().getDayOfWeek() == DayOfWeek.SATURDAY
                     || tmpSlot.getTime().getDayOfWeek() == DayOfWeek.SUNDAY)
+                totalTimeSlotHour++;
+            // 晚班跳过周一早上
+            else if (tmpSlot.getTime().getDayOfWeek() == DayOfWeek.MONDAY && tmpSlot.getTime().getHour() < 7)
                 totalTimeSlotHour++;
             else
                 timeSlots.add(tmpSlot);
