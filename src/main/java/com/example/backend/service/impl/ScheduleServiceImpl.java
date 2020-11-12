@@ -1,6 +1,7 @@
 package com.example.backend.service.impl;
 
 import java.sql.Timestamp;
+import java.time.DayOfWeek;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -40,7 +41,7 @@ import lombok.var;
 @Service
 public class ScheduleServiceImpl implements ScheduleService {
     // 以4个小时为粒度划分子订单
-    static final int subOrderMaxNeedTime = 12;
+    static final int subOrderMaxNeedTime = 4;
 
     @Autowired
     private OrderSchduleRepository orderScheduleRepository;
@@ -60,12 +61,13 @@ public class ScheduleServiceImpl implements ScheduleService {
         solutionDto = loadSolution();
     }
 
-    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 30000)
     private void fixedRateJob() {
         if (solverJob != null)
             tryGetScheduleOutput();
     }
 
+    // 对外调用排程的接口
     @Override
     public void schedule(ScheduleInputDto input, Date startTime) {
         currentInput = input;
@@ -124,31 +126,10 @@ public class ScheduleServiceImpl implements ScheduleService {
         return solutionDto;
     }
 
-    private TimeInterval createTimeInterval(TimeIntervalDto dto) {
-        return new TimeInterval(dto.getStartHourOfDay(), dto.getEndHourOfDay());
-    }
-
-    private List<TimeInterval> createTimeIntervals(List<TimeIntervalDto> dtos) {
-        return dtos.stream().map(dto -> createTimeInterval(dto)).collect(Collectors.toList());
-    }
-
-    private Group createGroup(ScheduleInputDto.Group dto) {
-        return new Group(dto.getId(), dto.getName(), dto.getMemberCount(), createTimeIntervals(dto.getWorkIntervals()));
-    }
-
-    private List<Group> createGroups(List<ScheduleInputDto.Group> dtos) {
-        return dtos.stream().map(dto -> createGroup(dto)).collect(Collectors.toList());
-    }
-
-    private Machine createMachine(ScheduleInputDto.Machine dto) {
-        return new Machine(dto.getId(), dto.getName(), dto.getMachineId());
-    }
-
-    private List<Machine> createMachines(List<ScheduleInputDto.Machine> dtos) {
-        return dtos.stream().map(dto -> createMachine(dto)).collect(Collectors.toList());
-    }
-
+    // 排程
     private void scheduleInternal(ScheduleInputDto input, Date startTime) {
+
+        // 定义排程输入
         List<Group> groups = createGroups(input.getGroups());
         List<Machine> machines = createMachines(input.getMachines());
         List<ScheduleInputDto.Order> orders = input.getOrders();
@@ -163,14 +144,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (ScheduleInputDto.Order order : orders)
             subOrders.addAll(splitOrder(order, startTime, subOrderMaxNeedTime));
 
-        // 排程
+        // 调用排程库
         SubOrderSchedule schedule = new SubOrderSchedule(startTimeCalendar.get(Calendar.HOUR_OF_DAY), groups, machines,
                 timeSlots, subOrders);
-
         UUID problemId = UUID.randomUUID();
         solverJob = solverManager.solve(problemId, schedule);
     }
 
+    // 插单排程
     private void scheduleInsertUrgentOrderInternal(ScheduleInputDto input, ScheduleOutputDto output, Date insertTime,
             ScheduleInputDto.Order urgentOrder) {
         Map<String, ScheduleInputDto.Order> inputOrderMap = input.getOrders().stream()
@@ -220,21 +201,33 @@ public class ScheduleServiceImpl implements ScheduleService {
         solverJob = solverManager.solve(problemId, schedule);
     }
 
+    // 得到可以工作的时间粒度段
     private List<TimeSlot> getTimeSlots(Date startTime, List<ScheduleInputDto.Order> orders) {
         // 开始时间必须对齐时间粒度 或者简单地对齐7点与19点
         // 以小时为单位
         int totalTimeSlotHour = 0;
         for (ScheduleInputDto.Order order : orders)
             totalTimeSlotHour += order.getNeedHour() / subOrderMaxNeedTime + 1;
-        totalTimeSlotHour *= 2;
-
+        totalTimeSlotHour /= 3;
         List<TimeSlot> timeSlots = new ArrayList<>(totalTimeSlotHour);
-        for (int i = 0; i < totalTimeSlotHour; i++)
-            timeSlots.add(new TimeSlot(i, new Date(startTime.getTime() + i * subOrderMaxNeedTime * 1000L * 60L * 60L)
-                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()));
+        for (int i = 0; i < totalTimeSlotHour; i++) {
+            TimeSlot tmpSlot = new TimeSlot(i,
+                    new Date(startTime.getTime() + i * subOrderMaxNeedTime * 1000L * 60L * 60L).toInstant()
+                            .atZone(ZoneId.systemDefault()).toLocalDateTime());
+            // 跳过周末
+            if (tmpSlot.getTime().getDayOfWeek() == DayOfWeek.SATURDAY
+                    || tmpSlot.getTime().getDayOfWeek() == DayOfWeek.SUNDAY)
+                totalTimeSlotHour++;
+            // 晚班跳过周一早上
+            else if (tmpSlot.getTime().getDayOfWeek() == DayOfWeek.MONDAY && tmpSlot.getTime().getHour() < 7)
+                totalTimeSlotHour++;
+            else
+                timeSlots.add(tmpSlot);
+        }
         return timeSlots;
     }
 
+    // 划分子订单
     private List<SubOrder> splitOrder(ScheduleInputDto.Order order, Date startTime, int subOrderMaxNeedTime) {
         List<SubOrder> subOrders = new ArrayList<>();
         int suborderIndex = 0;
@@ -257,9 +250,39 @@ public class ScheduleServiceImpl implements ScheduleService {
         return (int) ((time.getTime() - startTime.getTime()) / subOrderMaxNeedTime / 1000L / 60L / 60L);
     }
 
+    // 将排程结果保存到数据库
+    void saveSolution(ScheduleOutputDto output) {
+        var orderSchedulePos = createOrderSchedulePo(output);
+        orderScheduleRepository.deleteAll();
+        orderScheduleRepository.saveAll(orderSchedulePos);
+    }
+
+    // 提取数据库排程结果
+    ScheduleOutputDto loadSolution() {
+        var orderSchedulePos = orderScheduleRepository.findAll();
+        if (orderSchedulePos.size() != 0)
+            return createOutputDto(orderSchedulePos);
+        return null;
+    }
+
+    // 将数据库的排程数据转成Dto
+    private ScheduleOutputDto createOutputDto(List<OrderSchedulePo> orderSchedulePos) {
+        List<ScheduleOutputDto.Order> orders = new ArrayList<>();
+        ScheduleOutputDto res = new ScheduleOutputDto(orders);
+        for (OrderSchedulePo orderPo : orderSchedulePos) {
+            List<ScheduleOutputDto.SubOrder> subOrders = new ArrayList<>();
+            ScheduleOutputDto.Order order = new ScheduleOutputDto.Order(orderPo.getOrderId(), subOrders);
+            for (SubOrderSchedulePo subOrderPo : orderPo.getSubOrders())
+                subOrders.add(new ScheduleOutputDto.SubOrder(subOrderPo.getSubOrderId(), subOrderPo.getStartTime(),
+                        subOrderPo.getDurationTimeInHour(), subOrderPo.getGroupIdList(), subOrderPo.getMachineId()));
+            res.getOrders().add(order);
+        }
+        return res;
+    }
+
+    // 把排程结果转换为Dto
     private ScheduleOutputDto createOutputDto(Map<String, List<ScheduleOutputDto.SubOrder>> fixedSubOrders,
             ScheduleInputDto input, Date startTime, SubOrderSchedule solution) {
-        // 把排程结果转换为Dto
         List<ScheduleOutputDto.Order> outputOrders = new ArrayList<>(input.getOrders().size());
         HashMap<String, ScheduleOutputDto.Order> orderMap = new HashMap<>();
         ScheduleOutputDto res = new ScheduleOutputDto(outputOrders);
@@ -291,6 +314,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         return res;
     }
 
+    // 将排程结果Dto转换成Po
     private List<OrderSchedulePo> createOrderSchedulePo(ScheduleOutputDto outputDto) {
         List<OrderSchedulePo> res = new ArrayList<>(outputDto.getOrders().size());
         for (ScheduleOutputDto.Order order : outputDto.getOrders()) {
@@ -305,30 +329,28 @@ public class ScheduleServiceImpl implements ScheduleService {
         return res;
     }
 
-    private ScheduleOutputDto createOutputDto(List<OrderSchedulePo> orderSchedulePos) {
-        List<ScheduleOutputDto.Order> orders = new ArrayList<>();
-        ScheduleOutputDto res = new ScheduleOutputDto(orders);
-        for (OrderSchedulePo orderPo : orderSchedulePos) {
-            List<ScheduleOutputDto.SubOrder> subOrders = new ArrayList<>();
-            ScheduleOutputDto.Order order = new ScheduleOutputDto.Order(orderPo.getOrderId(), subOrders);
-            for (SubOrderSchedulePo subOrderPo : orderPo.getSubOrders())
-                subOrders.add(new ScheduleOutputDto.SubOrder(subOrderPo.getSubOrderId(), subOrderPo.getStartTime(),
-                        subOrderPo.getDurationTimeInHour(), subOrderPo.getGroupIdList(), subOrderPo.getMachineId()));
-            res.getOrders().add(order);
-        }
-        return res;
+    // 将输入转成内部类
+    private TimeInterval createTimeInterval(TimeIntervalDto dto) {
+        return new TimeInterval(dto.getStartHourOfDay(), dto.getEndHourOfDay());
     }
 
-    void saveSolution(ScheduleOutputDto output) {
-        var orderSchedulePos = createOrderSchedulePo(output);
-        orderScheduleRepository.deleteAll();
-        orderScheduleRepository.saveAll(orderSchedulePos);
+    private List<TimeInterval> createTimeIntervals(List<TimeIntervalDto> dtos) {
+        return dtos.stream().map(dto -> createTimeInterval(dto)).collect(Collectors.toList());
     }
 
-    ScheduleOutputDto loadSolution() {
-        var orderSchedulePos = orderScheduleRepository.findAll();
-        if (orderSchedulePos.size() != 0)
-            return createOutputDto(orderSchedulePos);
-        return null;
+    private Group createGroup(ScheduleInputDto.Group dto) {
+        return new Group(dto.getId(), dto.getName(), dto.getMemberCount(), createTimeIntervals(dto.getWorkIntervals()));
+    }
+
+    private List<Group> createGroups(List<ScheduleInputDto.Group> dtos) {
+        return dtos.stream().map(dto -> createGroup(dto)).collect(Collectors.toList());
+    }
+
+    private Machine createMachine(ScheduleInputDto.Machine dto) {
+        return new Machine(dto.getId(), dto.getName(), dto.getMachineId());
+    }
+
+    private List<Machine> createMachines(List<ScheduleInputDto.Machine> dtos) {
+        return dtos.stream().map(dto -> createMachine(dto)).collect(Collectors.toList());
     }
 }

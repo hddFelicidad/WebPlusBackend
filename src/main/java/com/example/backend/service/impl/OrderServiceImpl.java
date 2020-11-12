@@ -79,8 +79,8 @@ public class OrderServiceImpl implements OrderService {
         if(scheduleService.tryGetScheduleOutput() == null){
             return ResponseVO.buildFailure("排程暂未完成！");
         }
-
-        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderRemake(scheduleService.tryGetScheduleOutput().getOrders());
+        List<ScheduleOutputDto.Order> orderScheduleList = scheduleService.tryGetScheduleOutput().getOrders();
+        orderUtil.orderResort(orderScheduleList);
         List<OrderPlanVo> orderPlanVoList = new ArrayList<>();
         for(ScheduleOutputDto.Order eachOrder: orderScheduleList){
             List<ScheduleOutputDto.SubOrder> subOrderList = eachOrder.getSubOrders();
@@ -102,7 +102,8 @@ public class OrderServiceImpl implements OrderService {
             return ResponseVO.buildFailure("排程暂未完成！");
         }
 
-        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderRemake(scheduleService.tryGetScheduleOutput().getOrders());
+        List<ScheduleOutputDto.Order> orderScheduleList = scheduleService.tryGetScheduleOutput().getOrders();
+        orderUtil.orderResort(orderScheduleList);
         List<OrderProductionVo> orderProductionVoList = new ArrayList<>();
         for(ScheduleOutputDto.Order eachOrder: orderScheduleList) {
             List<ScheduleOutputDto.SubOrder> subOrderList = eachOrder.getSubOrders();
@@ -267,6 +268,8 @@ public class OrderServiceImpl implements OrderService {
         //获取在起止时间内的排程订单
         List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
                 startDate, endDate);
+//        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderDeliverByDate(scheduleService.tryGetScheduleOutput().getOrders(),
+//                endDate);
         if(orderList.size() == 0){
             return ResponseVO.buildFailure("起止时间内无正在处理的订单");
         }
@@ -301,22 +304,21 @@ public class OrderServiceImpl implements OrderService {
             Date dealDate = subOrderList.get(subOrderList.size() - 1).getEndTime();
             orderOccupy.setExpc_date(format.format(dealDate));
 
-            //判断此订单当天是否能准时交付
-            if(dealDate.before(endDate) && dealDate.before(orderPo.getDeadLine()))
+            //判断此订单准时交付
+            if(!dealDate.after(orderPo.getDeadLine()))
                 deliveryCount++;
 
             int doneTime = 0;
             int totalTime = 0;
 
             for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
-                Date now = new Date();
                 int durationHour = subOrder.getDurationTimeInHour();
                 Date startTime = subOrder.getStartTime();
                 Date endTime = subOrder.getEndTime();
                 totalTime += durationHour;
-                if(startTime.before(now)){
-                    if(now.before(endTime)){
-                        doneTime += commonUtil.getDistanceHour(startTime, now);
+                if(startTime.before(endDate)){
+                    if(endTime.after(endDate)){
+                        doneTime += commonUtil.getDistanceHour(startTime, commonUtil.addStartHour(startDate, 24));
                     }else{
                         doneTime += durationHour;
                     }
@@ -344,7 +346,7 @@ public class OrderServiceImpl implements OrderService {
         tasks.put("data", orderOccupyVoList);
         tasks.put("links", links);
         content.put("tasks", tasks);
-        content.put("delivery_rate", deliveryCount * 100 / orderList.size() + "%");
+        content.put("delivery_rate", deliveryCount * 100 / orderList.size());
 
         return ResponseVO.buildSuccess(content);
     }

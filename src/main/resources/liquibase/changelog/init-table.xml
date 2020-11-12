@@ -7,47 +7,71 @@
 
 
     <changeSet id="20201104" author="wzy">
-        <!--<createTable tableName="GroupPo" >-->
-            <!--<column name="id" type="int(11)" >-->
+        <!--<createTable tableName="group_po" >-->
+            <!--<column name="id" type="int(11)" autoIncrement="true" >-->
                 <!--<constraints primaryKey="true" nullable="false"/>-->
             <!--</column>-->
-            <!--<column name="groupName" type="varchar(255)" />-->
-            <!--<column name="groupId" type="varchar(255)" />-->
-            <!--<column name="memberCount" type="int(11)" />-->
-            <!--<column name="className" type="varchar(255)" />-->
+            <!--<column name="add_date" type="varchar(255)" />-->
+            <!--<column name="class_name" type="varchar(255)" />-->
+            <!--<column name="group_id" type="varchar(255)" />-->
+            <!--<column name="group_name" type="varchar(255)" />-->
+            <!--<column name="member_count" type="int(11)" />-->
         <!--</createTable>-->
 
-        <!--<createTable tableName="MachinePo" >-->
-            <!--<column name="id" type="int(11)" >-->
+        <!--<createTable tableName="machine_po" >-->
+            <!--<column name="id" type="int(11)" autoIncrement="true">-->
                 <!--<constraints primaryKey="true" nullable="false"/>-->
             <!--</column>-->
-            <!--<column name="machineName" type="varchar(255)" />-->
-            <!--<column name="machineId" type="varchar(255)" />-->
+            <!--<column name="add_date" type="varchar(255)" />-->
+            <!--<column name="machine_id" type="varchar(255)" />-->
+            <!--<column name="machine_name" type="varchar(255)" />-->
         <!--</createTable>-->
 
-        <!--<createTable tableName="OrderPo" >-->
-            <!--<column name="orderId" type="varchar(64)" >-->
+        <!--<createTable tableName="order_po" >-->
+            <!--<column name="order_id" type="varchar(255)" >-->
                 <!--<constraints primaryKey="true" nullable="false"/>-->
             <!--</column>-->
-            <!--<column name="itemId" type="varchar(255)" />-->
-            <!--<column name="itemCount" type="int(11)" />-->
-            <!--<column name="deadLine" type="date" />-->
+            <!--<column name="dead_line" type="datetime" />-->
+            <!--<column name="item_count" type="int(11)" />-->
+            <!--<column name="item_id" type="varchar(255)" />-->
         <!--</createTable>-->
 
-        <!--<createTable tableName="OrderSchedulePo" >-->
-            <!--<column name="id" type="int(11)" >-->
+        <!--<createTable tableName="order_schedule_po" >-->
+            <!--<column name="id" type="int(11)" autoIncrement="true">-->
                 <!--<constraints primaryKey="true" nullable="false"/>-->
             <!--</column>-->
-            <!--<column name="orderId" type="varchar(255)" />-->
-            <!--<column name="suborders" type="varchar(255)" />-->
+            <!--<column name="order_id" type="varchar(255)" />-->
         <!--</createTable>-->
 
-
-        <!--<createTable tableName="TimerPo" >-->
-            <!--<column name="id" type="int(11)" >-->
+        <!--<createTable tableName="order_schedule_po_sub_orders" >-->
+            <!--<column name="order_schedule_po_id" type="int(11)">-->
                 <!--<constraints primaryKey="true" nullable="false"/>-->
             <!--</column>-->
-            <!--<column name="initTime" type="timestamp(50)" />-->
+            <!--<column name="sub_orders_id" type="int(11)">-->
+                <!--<constraints primaryKey="true" nullable="false"/>-->
+            <!--</column>-->
+        <!--</createTable>-->
+
+        <!--<createTable tableName="sub_order_schedule_po" >-->
+            <!--<column name="id" type="int(11)" autoIncrement="true">-->
+                <!--<constraints primaryKey="true" nullable="false"/>-->
+            <!--</column>-->
+            <!--<column name="duration_time_in_hour" type="int(11)" />-->
+            <!--<column name="machine_id" type="varchar(255)" />-->
+            <!--<column name="start_time" type="datetime" />-->
+            <!--<column name="sub_order_id" type="varchar(255)" />-->
+        <!--</createTable>-->
+
+        <!--<createTable tableName="sub_order_schedule_po_group_id_list" >-->
+            <!--<column name="sub_order_schedule_po_id" type="int(11)" />-->
+            <!--<column name="group_id_list" type="varchar(255)" />-->
+        <!--</createTable>-->
+
+        <!--<createTable tableName="timer_po" >-->
+            <!--<column name="id" type="int(11)" autoIncrement="true">-->
+                <!--<constraints primaryKey="true" nullable="false"/>-->
+            <!--</column>-->
+            <!--<column name="init_time" type="datetime" />-->
             <!--<column name="rate" type="double" />-->
         <!--</createTable>-->
     </changeSet>

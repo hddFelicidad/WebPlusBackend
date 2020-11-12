@@ -11,6 +11,7 @@ import com.example.backend.service.ResourceService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.util.*;
 import com.example.backend.vo.*;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -154,31 +155,41 @@ public class ResourceServiceImpl implements ResourceService {
     public ResponseVO updateResourceInfo(ResourceUpdateVo resourceInfo) {
         String resourceId = resourceInfo.getId();
         if(resourceId.startsWith("ln")){
+            if(checkUse(resourceId, 2))
+                return ResponseVO.buildFailure("该资源无法删除");
+
+            String newMachineName = resourceInfo.getName();
             String machineId = resourceId.substring(2);
             List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineId(machineId);
+            int count = Math.min(resourceInfo.getNumber(), machinePoList.size());
+
+            for(int i = 0; i < count; i++){
+                MachinePo machinePo = machinePoList.get(i);
+                machinePo.setMachineName(newMachineName);
+                machineRepository.save(machinePo);
+            }
+
+            machinePoList = machineRepository.findMachinePosByMachineId(machineId);
             if(machinePoList.size() > resourceInfo.getNumber()){
-                for(int i = resourceInfo.getNumber(); i < machinePoList.size(); i++){
-                    machineRepository.delete(machinePoList.get(i));
+                for(int j = resourceInfo.getNumber(); j < machinePoList.size(); j++){
+                    machineRepository.delete(machinePoList.get(j));
                 }
-            }else if(machinePoList.size() == resourceInfo.getNumber()){
-                for(MachinePo machinePo: machinePoList){
-                    machinePo.setMachineName(resourceInfo.getName());
-                    machineRepository.save(machinePo);
-                }
-            }else{
-                for(MachinePo machinePo: machinePoList){
-                    machinePo.setMachineName(resourceInfo.getName());
-                    machineRepository.save(machinePo);
-                }
-                for(int i = 0; i < resourceInfo.getNumber()-machinePoList.size(); i++){
-                    MachinePo machinePo = new MachinePo(null, resourceInfo.getName(), machineId,
+            }else if(machinePoList.size() < resourceInfo.getNumber()){
+                for(int i = 0; i < resourceInfo.getNumber() - machinePoList.size(); i++){
+                    MachinePo machinePo = new MachinePo(null, newMachineName, machineId,
                             machinePoList.get(0).getAddDate());
                     machineRepository.save(machinePo);
                 }
             }
+
             return ResponseVO.buildSuccess();
         }else if(resourceId.startsWith("hr")){
+            if(checkUse(resourceId, 1))
+                return ResponseVO.buildFailure("该资源无法删除");
+
             String groupId = resourceId.substring(2);
+            String groupName = resourceInfo.getName();
+
             String className = "";
             switch (resourceInfo.getShift()){
                 case 1:
@@ -195,7 +206,7 @@ public class ResourceServiceImpl implements ResourceService {
             }
 
             GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
-            groupPo.setGroupName(resourceInfo.getName());
+            groupPo.setGroupName(groupName);
             groupPo.setMemberCount(resourceInfo.getNumber());
             groupPo.setClassName(className);
             groupRepository.save(groupPo);
@@ -223,24 +234,25 @@ public class ResourceServiceImpl implements ResourceService {
                 default:
                     break;
             }
-            GroupPo groupPo = new GroupPo(null, resourceInfo.getName(), "",
+            String groupName = resourceInfo.getName();
+            String groupId = groupName.substring(0, groupName.indexOf("组"));
+            if(checkGroupExist(groupId))
+                return ResponseVO.buildFailure("组号已存在");
+            GroupPo groupPo = new GroupPo(null, groupName, groupId,
                     resourceInfo.getNumber(), className, resourceInfo.getDate());
             GroupPo newGroup = groupRepository.save(groupPo);
-            newGroup.setGroupId(String.valueOf(newGroup.getId()));
-            groupRepository.save(newGroup);
             Map<String, String> content = new HashMap<>();
             content.put("id", "hr" + newGroup.getGroupId());
             return ResponseVO.buildSuccess(content);
         }else if(type == 2){
             int count = resourceInfo.getNumber();
-            int machineId = -1;
+            String machineName = resourceInfo.getName();
+            String machineId = machineName.substring(4);
+            if(checkMachineExist(machineId))
+                return ResponseVO.buildFailure("生产线号已存在");
             for(int i = 0; i< count; i++){
-                MachinePo machinePo = new MachinePo(null, resourceInfo.getName(), "", resourceInfo.getDate());
-                MachinePo newMachine = machineRepository.save(machinePo);
-                if(machineId == -1)
-                    machineId = newMachine.getId();
-                newMachine.setMachineId(String.valueOf(machineId));
-                machineRepository.save(newMachine);
+                MachinePo machinePo = new MachinePo(null, resourceInfo.getName(), machineId, resourceInfo.getDate());
+                machineRepository.save(machinePo);
             }
             Map<String, String> content = new HashMap<>();
             content.put("id", "ln" + machineId);
@@ -252,7 +264,11 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public ResponseVO deleteResource(String resourceId) {
+
         if(resourceId.startsWith("ln")){
+            if(checkUse(resourceId, 2))
+                return ResponseVO.buildFailure("该资源无法删除");
+
             String machineId = resourceId.substring(2);
             List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineId(machineId);
             for(MachinePo machinePo: machinePoList){
@@ -260,6 +276,9 @@ public class ResourceServiceImpl implements ResourceService {
             }
             return ResponseVO.buildSuccess();
         }else if(resourceId.startsWith("hr")){
+            if(checkUse(resourceId, 1))
+                return ResponseVO.buildFailure("该资源无法删除");
+
             String groupId = resourceId.substring(2);
             GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
             groupRepository.delete(groupPo);
@@ -367,6 +386,10 @@ public class ResourceServiceImpl implements ResourceService {
                         //判断是否为当天的子订单
                         if(!(currentStartTime.after(subOrder.getStartTime()) || currentEndTime.before(subOrder.getStartTime()))){
                             int durationHour = subOrder.getDurationTimeInHour();
+                            if(subOrder.getEndTime().after(currentEndTime)){
+                                durationHour = commonUtil.getDistanceHour(subOrder.getStartTime(), currentEndTime) + 1;
+                            }
+
                             List<String> occupyGroupIdList = subOrder.getGroupIdList();     //子订单占用的人力资源
                             for(String occupyGroupId: occupyGroupIdList){
                                 int groupIndex = resourceIdList.indexOf("hr" + occupyGroupId);  //获取对应下标
@@ -432,6 +455,7 @@ public class ResourceServiceImpl implements ResourceService {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
+        int dayDiff = commonUtil.getDistanceDay(startDate, endDate) + 1;
 
         List<ResourceOccupyVo> resourceOccupyVoList = new ArrayList<>();
         //获取在起止时间内的排程订单
@@ -485,10 +509,13 @@ public class ResourceServiceImpl implements ResourceService {
                 if(!(startDate.after(subOrder.getStartTime()) || endDate.before(subOrder.getStartTime()))){
                     //子订单开始时间
                     Date start_date = subOrder.getStartTime();
-                    //子订单持续时间
-                    int durationTime = subOrder.getDurationTimeInHour();
                     //子订单结束时间
                     Date end_date = subOrder.getEndTime();
+                    //子订单持续时间
+                    int durationTime = subOrder.getDurationTimeInHour();
+                    if(end_date.after(endDate)){
+                        durationTime = commonUtil.getDistanceHour(start_date, endDate) + 1;
+                    }
 
                     //子订单占用人力资源id列表
                     List<String> occupyGroupIdList = subOrder.getGroupIdList();
@@ -554,7 +581,7 @@ public class ResourceServiceImpl implements ResourceService {
         for(int i = 0; i < groupIdList.size(); i++){
             String groupId = groupIdList.get(i);
             String groupName = groupRepository.findGroupPoByGroupId(groupId).getGroupName();
-            String percent = Math.min(groupOccupyHourList.get(i), 12) * 100 / 12 + "%";
+            String percent = groupOccupyHourList.get(i) * 100 / 12 / dayDiff + "%";
             String start = groupFirstOccupyTime.get(i);
             int duration = 0;
             if(groupOccupyHourList.get(i) > 0){
@@ -562,7 +589,6 @@ public class ResourceServiceImpl implements ResourceService {
                         dateFormat.parse(groupFirstOccupyTime.get(i)),
                         dateFormat.parse(groupLastOccupyTime.get(i)));
             }
-            duration = Math.min(duration, 24);
             ResourceOccupyVo groupOccupy = new ResourceOccupyVo();
             groupOccupy.setId(groupIdBegin + i);
             groupOccupy.setResource(groupName);
@@ -579,7 +605,7 @@ public class ResourceServiceImpl implements ResourceService {
         for(int j = 0; j < machineIdList.size(); j++){
             String machineId = machineIdList.get(j);
             String machineName = machineRepository.findMachinePoById(Integer.parseInt(machineId)).getMachineName();
-            String percent = Math.min(machineOccupyHourList.get(j), 24) * 100 / 24 + "%";
+            String percent = machineOccupyHourList.get(j) * 100 / 24 / dayDiff + "%";
             String start = machineFirstOccupyTime.get(j);
             int duration = 0;
             if(machineOccupyHourList.get(j) > 0){
@@ -587,7 +613,6 @@ public class ResourceServiceImpl implements ResourceService {
                         dateFormat.parse(machineFirstOccupyTime.get(j)),
                         dateFormat.parse(machineLastOccupyTime.get(j)));
             }
-            duration = Math.min(duration, 24);
             ResourceOccupyVo machineOccupy = new ResourceOccupyVo();
             machineOccupy.setId(machineIdBegin + j);
             machineOccupy.setResource(machineName);
@@ -609,6 +634,13 @@ public class ResourceServiceImpl implements ResourceService {
         return ResponseVO.buildSuccess(content);
     }
 
+    /**
+     * 获取资源占用信息
+     * @param s
+     * @param e
+     * @return
+     * @throws ParseException
+     */
     public ResponseVO getResourceOccupyInfo(String s, String e) throws ParseException {
         if(scheduleService.tryGetScheduleOutput() == null){
             return ResponseVO.buildFailure("排程暂未完成！");
@@ -684,6 +716,11 @@ public class ResourceServiceImpl implements ResourceService {
         return ResponseVO.buildSuccess(content);
     }
 
+    /**
+     * 判断订单是否延期
+     * @param order
+     * @return
+     */
     public String checkForDelay(ScheduleOutputDto.Order order){
         String id = order.getId();
         //判断最后一个子订单是否超期
@@ -726,4 +763,45 @@ public class ResourceServiceImpl implements ResourceService {
         return count;
     }
 
+    public boolean checkGroupExist(String groupId){
+        GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
+        return groupPo != null;
+    }
+
+    public boolean checkMachineExist(String machineId){
+        var machinePo = machineRepository.findMachinePosByMachineId(machineId);
+        return !machinePo.isEmpty();
+    }
+
+    public boolean checkUse(String resourceId, int type){
+        boolean result = false;
+        Date now = new Date();
+        List<ScheduleOutputDto.Order> orderList = scheduleService.tryGetScheduleOutput().getOrders();
+        for(ScheduleOutputDto.Order order: orderList){
+            List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
+            for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
+                if(now.before(subOrder.getStartTime())){
+                    if(type == 1){
+                        List<String> groupOccupyIdList = subOrder.getGroupIdList();
+                        for(String groupOccupyId: groupOccupyIdList){
+                            if(groupOccupyId.equals(resourceId)){
+                                result = true;
+                                break;
+                            }
+                        }
+                    }else if(type == 2){
+                        String machineOccupyId = subOrder.getMachineId();
+                        MachinePo machinePo = machineRepository.findMachinePoById(Integer.parseInt(machineOccupyId));
+                        if(machinePo.getMachineId().equals(resourceId)){
+                            result = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(result)
+                break;
+        }
+        return result;
+    }
 }

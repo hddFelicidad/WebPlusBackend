@@ -2,12 +2,11 @@ package com.example.backend.util;
 
 import com.example.backend.data.OrderRepository;
 import com.example.backend.dto.ScheduleOutputDto;
+import com.example.backend.po.OrderPo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class OrderUtil {
@@ -18,16 +17,17 @@ public class OrderUtil {
 
     /**
      * 根据开始时间和结束时间筛选排程订单
-     * @param originalOrderList
-     * @param startDate
-     * @param endDate
+     * @param originalOrderList 原始排程数据
+     * @param startDate 开始时间按
+     * @param endDate 结束时间
      * @return
      */
     public List<ScheduleOutputDto.Order> getOrderByDate(List<ScheduleOutputDto.Order> originalOrderList, Date startDate, Date endDate){
         if(originalOrderList.size() > 0){
             List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
-            List<ScheduleOutputDto.Order> tmpOrderList = orderRemake(originalOrderList);
-            for(ScheduleOutputDto.Order order: tmpOrderList){
+//            List<ScheduleOutputDto.Order> tmpOrderList = orderRemake(originalOrderList);
+            orderResort(originalOrderList);
+            for(ScheduleOutputDto.Order order: originalOrderList){
                 List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
                 //订单在当前日期是否有子订单在进行
                 boolean within = false;
@@ -39,6 +39,21 @@ public class OrderUtil {
                     }
                 }
                 if(within)
+                    targetOrderList.add(order);
+            }
+            return targetOrderList;
+        }
+        return null;
+    }
+
+    public List<ScheduleOutputDto.Order> getOrderDeliverByDate(List<ScheduleOutputDto.Order> originalOrderList, Date endDate){
+        if(originalOrderList.size() > 0){
+            List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
+            List<ScheduleOutputDto.Order> tmpOrderList = orderRemake(originalOrderList);
+            for(ScheduleOutputDto.Order order: tmpOrderList){
+                String orderId = order.getId();
+                OrderPo orderPo = orderRepository.findOrderPoByOrderId(orderId);
+                if(!orderPo.getDeadLine().after(endDate))
                     targetOrderList.add(order);
             }
             return targetOrderList;
@@ -61,51 +76,18 @@ public class OrderUtil {
     }
 
     /**
-     * 子订单整合
+     * 将跨天子订单拆开
      * @param originalOrderList
      * @return
      */
     public List<ScheduleOutputDto.Order> orderRemake(List<ScheduleOutputDto.Order> originalOrderList){
         List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
+        orderResort(originalOrderList);
         for(ScheduleOutputDto.Order originalOrder: originalOrderList){
             int subOrderId = 1;
             List<ScheduleOutputDto.SubOrder> originalSubOrderList = originalOrder.getSubOrders();
-            List<ScheduleOutputDto.SubOrder> tmpSubOrderList = new ArrayList<>();
             List<ScheduleOutputDto.SubOrder> targetSubOrderList = new ArrayList<>();
-            for(int i = 0; i < originalSubOrderList.size() - 1; i++){
-                ScheduleOutputDto.SubOrder current = originalSubOrderList.get(i);
-                ScheduleOutputDto.SubOrder next = originalSubOrderList.get(i + 1);
-                //
-                if(next.getStartTime().equals(current.getEndTime()) &&
-                current.getMachineId().equals(next.getMachineId()) &&
-                current.getGroupIdList().size() == next.getGroupIdList().size()){
-                    boolean flag = true;
-                    List<String> currentGroupIdList = current.getGroupIdList();
-                    List<String> nextGroupIdList = next.getGroupIdList();
-                    for(int j = 0; j < currentGroupIdList.size(); j++){
-                        if(!currentGroupIdList.get(j).equals(nextGroupIdList.get(j))){
-                            flag = false;
-                            break;
-                        }
-                    }
-                    if(flag){
-                        ScheduleOutputDto.SubOrder newSubOrder = new ScheduleOutputDto.SubOrder(originalOrder.getId() + "_" + subOrderId,
-                                current.getStartTime(), current.getDurationTimeInHour() + next.getDurationTimeInHour(),
-                                current.getGroupIdList(), current.getMachineId());
-                        subOrderId++;
-                        tmpSubOrderList.add(newSubOrder);
-                    }else{
-                        tmpSubOrderList.add(current);
-                        subOrderId++;
-                    }
-                }
-                else{
-                    tmpSubOrderList.add(current);
-                    subOrderId++;
-                }
-            }
-            subOrderId = 1;
-            for (ScheduleOutputDto.SubOrder current : tmpSubOrderList) {
+            for (ScheduleOutputDto.SubOrder current : originalSubOrderList) {
                 if (!commonUtil.isDifferentDay(current.getStartTime(), current.getEndTime())) {
                     Date splitDate = commonUtil.getStartOfDay(current.getEndTime());
                     ScheduleOutputDto.SubOrder firstNewSubOrder = new ScheduleOutputDto.SubOrder(originalOrder.getId() + "_" + subOrderId,
@@ -119,7 +101,9 @@ public class OrderUtil {
                     targetSubOrderList.add(secondNewSubOrder);
                 }
                 else{
-                    targetSubOrderList.add(current);
+                    ScheduleOutputDto.SubOrder newSubOrder = new ScheduleOutputDto.SubOrder(originalOrder.getId() + "_" + subOrderId,
+                            current.getStartTime(), current.getDurationTimeInHour(), current.getGroupIdList(), current.getMachineId());
+                    targetSubOrderList.add(newSubOrder);
                 }
                 subOrderId++;
             }
@@ -127,5 +111,18 @@ public class OrderUtil {
             targetOrderList.add(newOrder);
         }
         return targetOrderList;
+    }
+
+    /**
+     * 对子订单按开始时间进行进行排序
+     * @param originalOrderList
+     * @return
+     */
+    public void orderResort(List<ScheduleOutputDto.Order> originalOrderList){
+        for(ScheduleOutputDto.Order originalOrder: originalOrderList){
+            List<ScheduleOutputDto.SubOrder> originalSubOrderList = originalOrder.getSubOrders();
+            originalSubOrderList.sort(Comparator.comparing(ScheduleOutputDto.SubOrder::getStartTime));
+
+        }
     }
 }
