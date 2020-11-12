@@ -3,6 +3,7 @@ package com.example.backend.service.impl;
 import com.example.backend.data.GroupRepository;
 import com.example.backend.data.MachineRepository;
 import com.example.backend.data.OrderRepository;
+import com.example.backend.dto.ScheduleInputDto;
 import com.example.backend.dto.ScheduleOutputDto;
 import com.example.backend.po.GroupPo;
 import com.example.backend.po.MachinePo;
@@ -79,8 +80,8 @@ public class OrderServiceImpl implements OrderService {
         if(scheduleService.tryGetScheduleOutput() == null){
             return ResponseVO.buildFailure("排程暂未完成！");
         }
-
-        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderResort(scheduleService.tryGetScheduleOutput().getOrders());
+        List<ScheduleOutputDto.Order> orderScheduleList = scheduleService.tryGetScheduleOutput().getOrders();
+        orderUtil.orderResort(orderScheduleList);
         List<OrderPlanVo> orderPlanVoList = new ArrayList<>();
         for(ScheduleOutputDto.Order eachOrder: orderScheduleList){
             List<ScheduleOutputDto.SubOrder> subOrderList = eachOrder.getSubOrders();
@@ -102,7 +103,8 @@ public class OrderServiceImpl implements OrderService {
             return ResponseVO.buildFailure("排程暂未完成！");
         }
 
-        List<ScheduleOutputDto.Order> orderScheduleList = orderUtil.orderResort(scheduleService.tryGetScheduleOutput().getOrders());
+        List<ScheduleOutputDto.Order> orderScheduleList = scheduleService.tryGetScheduleOutput().getOrders();
+        orderUtil.orderResort(orderScheduleList);
         List<OrderProductionVo> orderProductionVoList = new ArrayList<>();
         for(ScheduleOutputDto.Order eachOrder: orderScheduleList) {
             List<ScheduleOutputDto.SubOrder> subOrderList = eachOrder.getSubOrders();
@@ -265,8 +267,10 @@ public class OrderServiceImpl implements OrderService {
         Date startDate = simpleDateFormat.parse(s);
         Date endDate = simpleDateFormat.parse(e);
         //获取在起止时间内的排程订单
-        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
-                startDate, endDate);
+//        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderByDate(scheduleService.tryGetScheduleOutput().getOrders(),
+//                startDate, endDate);
+        List<ScheduleOutputDto.Order> orderList = orderUtil.getOrderDeliverByDate(scheduleService.tryGetScheduleOutput().getOrders(),
+                endDate);
         if(orderList.size() == 0){
             return ResponseVO.buildFailure("起止时间内无正在处理的订单");
         }

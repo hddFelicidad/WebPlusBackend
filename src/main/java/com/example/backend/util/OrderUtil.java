@@ -2,12 +2,11 @@ package com.example.backend.util;
 
 import com.example.backend.data.OrderRepository;
 import com.example.backend.dto.ScheduleOutputDto;
+import com.example.backend.po.OrderPo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class OrderUtil {
@@ -46,6 +45,21 @@ public class OrderUtil {
         return null;
     }
 
+    public List<ScheduleOutputDto.Order> getOrderDeliverByDate(List<ScheduleOutputDto.Order> originalOrderList, Date endDate){
+        if(originalOrderList.size() > 0){
+            List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
+            List<ScheduleOutputDto.Order> tmpOrderList = orderRemake(originalOrderList);
+            for(ScheduleOutputDto.Order order: tmpOrderList){
+                String orderId = order.getId();
+                OrderPo orderPo = orderRepository.findOrderPoByOrderId(orderId);
+                if(!orderPo.getDeadLine().after(endDate))
+                    targetOrderList.add(order);
+            }
+            return targetOrderList;
+        }
+        return null;
+    }
+
     public List<ScheduleOutputDto.Order> getOrderByProductId(List<ScheduleOutputDto.Order> originalOrderList, String productId){
         if(originalOrderList.size() > 0){
             List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
@@ -67,8 +81,8 @@ public class OrderUtil {
      */
     public List<ScheduleOutputDto.Order> orderRemake(List<ScheduleOutputDto.Order> originalOrderList){
         List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
-        List<ScheduleOutputDto.Order> resortOrderList = orderResort(originalOrderList);
-        for(ScheduleOutputDto.Order originalOrder: resortOrderList){
+        orderResort(originalOrderList);
+        for(ScheduleOutputDto.Order originalOrder: originalOrderList){
             int subOrderId = 1;
             List<ScheduleOutputDto.SubOrder> originalSubOrderList = originalOrder.getSubOrders();
             List<ScheduleOutputDto.SubOrder> targetSubOrderList = new ArrayList<>();
@@ -99,27 +113,15 @@ public class OrderUtil {
     }
 
     /**
-     * 对子订单进行排序
+     * 对子订单按开始时间进行进行排序
      * @param originalOrderList
      * @return
      */
-    public List<ScheduleOutputDto.Order> orderResort(List<ScheduleOutputDto.Order> originalOrderList){
-        List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
+    public void orderResort(List<ScheduleOutputDto.Order> originalOrderList){
         for(ScheduleOutputDto.Order originalOrder: originalOrderList){
             List<ScheduleOutputDto.SubOrder> originalSubOrderList = originalOrder.getSubOrders();
-            List<ScheduleOutputDto.SubOrder> targetSubOrderList = new ArrayList<>();
-            for(int i = 0; i < originalSubOrderList.size(); i++){
-                targetSubOrderList.add(new ScheduleOutputDto.SubOrder());
-            }
-            for(ScheduleOutputDto.SubOrder originalSubOrder: originalSubOrderList){
-                String id = originalSubOrder.getId();
-                int subOrderId = Integer.parseInt(id.substring(id.indexOf("_") + 1));
-                targetSubOrderList.set(subOrderId - 1, originalSubOrder);
-            }
-            ScheduleOutputDto.Order targetOrder = new
-                    ScheduleOutputDto.Order(originalOrder.getId(), targetSubOrderList);
-            targetOrderList.add(targetOrder);
+            originalSubOrderList.sort(Comparator.comparing(ScheduleOutputDto.SubOrder::getStartTime));
+
         }
-        return targetOrderList;
     }
 }

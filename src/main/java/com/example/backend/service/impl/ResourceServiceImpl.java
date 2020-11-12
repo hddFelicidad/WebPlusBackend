@@ -11,6 +11,8 @@ import com.example.backend.service.ResourceService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.util.*;
 import com.example.backend.vo.*;
+import liquibase.pro.packaged.D;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -154,31 +156,41 @@ public class ResourceServiceImpl implements ResourceService {
     public ResponseVO updateResourceInfo(ResourceUpdateVo resourceInfo) {
         String resourceId = resourceInfo.getId();
         if(resourceId.startsWith("ln")){
+            if(checkUse(resourceId, 2))
+                return ResponseVO.buildFailure("该资源无法删除");
+
+            String newMachineName = resourceInfo.getName();
             String machineId = resourceId.substring(2);
             List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineId(machineId);
+            int count = Math.min(resourceInfo.getNumber(), machinePoList.size());
+
+            for(int i = 0; i < count; i++){
+                MachinePo machinePo = machinePoList.get(i);
+                machinePo.setMachineName(newMachineName);
+                machineRepository.save(machinePo);
+            }
+
+            machinePoList = machineRepository.findMachinePosByMachineId(machineId);
             if(machinePoList.size() > resourceInfo.getNumber()){
-                for(int i = resourceInfo.getNumber(); i < machinePoList.size(); i++){
-                    machineRepository.delete(machinePoList.get(i));
+                for(int j = resourceInfo.getNumber(); j < machinePoList.size(); j++){
+                    machineRepository.delete(machinePoList.get(j));
                 }
-            }else if(machinePoList.size() == resourceInfo.getNumber()){
-                for(MachinePo machinePo: machinePoList){
-                    machinePo.setMachineName(resourceInfo.getName());
-                    machineRepository.save(machinePo);
-                }
-            }else{
-                for(MachinePo machinePo: machinePoList){
-                    machinePo.setMachineName(resourceInfo.getName());
-                    machineRepository.save(machinePo);
-                }
-                for(int i = 0; i < resourceInfo.getNumber()-machinePoList.size(); i++){
-                    MachinePo machinePo = new MachinePo(null, resourceInfo.getName(), machineId,
+            }else if(machinePoList.size() < resourceInfo.getNumber()){
+                for(int i = 0; i < resourceInfo.getNumber() - machinePoList.size(); i++){
+                    MachinePo machinePo = new MachinePo(null, newMachineName, machineId,
                             machinePoList.get(0).getAddDate());
                     machineRepository.save(machinePo);
                 }
             }
+
             return ResponseVO.buildSuccess();
         }else if(resourceId.startsWith("hr")){
+            if(checkUse(resourceId, 1))
+                return ResponseVO.buildFailure("该资源无法删除");
+
             String groupId = resourceId.substring(2);
+            String groupName = resourceInfo.getName();
+
             String className = "";
             switch (resourceInfo.getShift()){
                 case 1:
@@ -195,7 +207,7 @@ public class ResourceServiceImpl implements ResourceService {
             }
 
             GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
-            groupPo.setGroupName(resourceInfo.getName());
+            groupPo.setGroupName(groupName);
             groupPo.setMemberCount(resourceInfo.getNumber());
             groupPo.setClassName(className);
             groupRepository.save(groupPo);
@@ -223,24 +235,25 @@ public class ResourceServiceImpl implements ResourceService {
                 default:
                     break;
             }
-            GroupPo groupPo = new GroupPo(null, resourceInfo.getName(), "",
+            String groupName = resourceInfo.getName();
+            String groupId = groupName.substring(0, groupName.indexOf("组"));
+            if(checkGroupExist(groupId))
+                return ResponseVO.buildFailure("组号已存在");
+            GroupPo groupPo = new GroupPo(null, groupName, groupId,
                     resourceInfo.getNumber(), className, resourceInfo.getDate());
             GroupPo newGroup = groupRepository.save(groupPo);
-            newGroup.setGroupId(String.valueOf(newGroup.getId()));
-            groupRepository.save(newGroup);
             Map<String, String> content = new HashMap<>();
             content.put("id", "hr" + newGroup.getGroupId());
             return ResponseVO.buildSuccess(content);
         }else if(type == 2){
             int count = resourceInfo.getNumber();
-            int machineId = -1;
+            String machineName = resourceInfo.getName();
+            String machineId = machineName.substring(4);
+            if(checkMachineExist(machineId))
+                return ResponseVO.buildFailure("生产线号已存在");
             for(int i = 0; i< count; i++){
-                MachinePo machinePo = new MachinePo(null, resourceInfo.getName(), "", resourceInfo.getDate());
-                MachinePo newMachine = machineRepository.save(machinePo);
-                if(machineId == -1)
-                    machineId = newMachine.getId();
-                newMachine.setMachineId(String.valueOf(machineId));
-                machineRepository.save(newMachine);
+                MachinePo machinePo = new MachinePo(null, resourceInfo.getName(), machineId, resourceInfo.getDate());
+                machineRepository.save(machinePo);
             }
             Map<String, String> content = new HashMap<>();
             content.put("id", "ln" + machineId);
@@ -252,7 +265,11 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public ResponseVO deleteResource(String resourceId) {
+
         if(resourceId.startsWith("ln")){
+            if(checkUse(resourceId, 2))
+                return ResponseVO.buildFailure("该资源无法删除");
+
             String machineId = resourceId.substring(2);
             List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineId(machineId);
             for(MachinePo machinePo: machinePoList){
@@ -260,6 +277,9 @@ public class ResourceServiceImpl implements ResourceService {
             }
             return ResponseVO.buildSuccess();
         }else if(resourceId.startsWith("hr")){
+            if(checkUse(resourceId, 1))
+                return ResponseVO.buildFailure("该资源无法删除");
+
             String groupId = resourceId.substring(2);
             GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
             groupRepository.delete(groupPo);
@@ -725,4 +745,45 @@ public class ResourceServiceImpl implements ResourceService {
         return count;
     }
 
+    public boolean checkGroupExist(String groupId){
+        GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
+        return groupPo != null;
+    }
+
+    public boolean checkMachineExist(String machineId){
+        var machinePo = machineRepository.findMachinePosByMachineId(machineId);
+        return !machinePo.isEmpty();
+    }
+
+    public boolean checkUse(String resourceId, int type){
+        boolean result = false;
+        Date now = new Date();
+        List<ScheduleOutputDto.Order> orderList = scheduleService.tryGetScheduleOutput().getOrders();
+        for(ScheduleOutputDto.Order order: orderList){
+            List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
+            for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
+                if(now.before(subOrder.getStartTime())){
+                    if(type == 1){
+                        List<String> groupOccupyIdList = subOrder.getGroupIdList();
+                        for(String groupOccupyId: groupOccupyIdList){
+                            if(groupOccupyId.equals(resourceId)){
+                                result = true;
+                                break;
+                            }
+                        }
+                    }else if(type == 2){
+                        String machineOccupyId = subOrder.getMachineId();
+                        MachinePo machinePo = machineRepository.findMachinePoById(Integer.parseInt(machineOccupyId));
+                        if(machinePo.getMachineId().equals(resourceId)){
+                            result = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(result)
+                break;
+        }
+        return result;
+    }
 }
