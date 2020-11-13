@@ -287,7 +287,7 @@ public class OrderServiceImpl implements OrderService {
             OrderOccupyVo orderOccupy = new OrderOccupyVo();
             String orderId = order.getId();
             OrderPo orderPo = orderRepository.findOrderPoByOrderId(orderId);
-            String deadLine = format.format(orderPo.getDeadLine());
+            String deadLine = simpleDateFormat.format(orderPo.getDeadLine());
 
             orderOccupy.setId(id);
             orderOccupy.setNumber(orderId);
@@ -302,7 +302,7 @@ public class OrderServiceImpl implements OrderService {
             List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
             //预计交期（最后一个子订单的结束时间）
             Date dealDate = subOrderList.get(subOrderList.size() - 1).getEndTime();
-            orderOccupy.setExpc_date(format.format(dealDate));
+            orderOccupy.setExpc_date(simpleDateFormat.format(dealDate));
 
             //判断此订单准时交付
             if(!dealDate.after(orderPo.getDeadLine()))
@@ -332,7 +332,7 @@ public class OrderServiceImpl implements OrderService {
             //产品名称（数据表里暂时没有这一项）
             subOrderOccupy.setName("产品" + orderPo.getItemId());
             subOrderOccupy.setDeal_date(deadLine);
-            subOrderOccupy.setExpc_date(format.format(dealDate));
+            subOrderOccupy.setExpc_date(simpleDateFormat.format(dealDate));
             subOrderOccupy.setParent(parentId);
             id++;
             subOrderOccupy.setProgress((float) doneTime / totalTime);
