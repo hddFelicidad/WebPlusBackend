@@ -11,7 +11,7 @@ import org.optaplanner.core.api.score.stream.ConstraintProvider;
 import org.optaplanner.core.api.score.stream.Joiners;
 import org.optaplanner.core.impl.score.stream.uni.DefaultUniConstraintCollector;
 
-public class SubOrderConstraintProvider implements ConstraintProvider {
+public class SuborderConstraintProvider implements ConstraintProvider {
 
     @Override
     public Constraint[] defineConstraints(ConstraintFactory constraintFactory) {
