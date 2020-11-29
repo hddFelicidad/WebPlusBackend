@@ -23,8 +23,7 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="id" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="lineResource" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
  *         &lt;element name="mainResource" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="materialCount" type="{http://www.w3.org/2001/XMLSchema}double" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="materials" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="process" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="standardOutput" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="workerCount" type="{http://www.w3.org/2001/XMLSchema}int"/>
  *       &lt;/sequence>
@@ -41,8 +40,7 @@ import javax.xml.bind.annotation.XmlType;
     "id",
     "lineResource",
     "mainResource",
-    "materialCount",
-    "materials",
+    "process",
     "standardOutput",
     "workerCount"
 })
@@ -54,10 +52,7 @@ public class BomEntity {
     protected List<String> lineResource;
     @XmlElement(nillable = true)
     protected List<String> mainResource;
-    @XmlElement(nillable = true)
-    protected List<Double> materialCount;
-    @XmlElement(nillable = true)
-    protected List<String> materials;
+    protected String process;
     protected String standardOutput;
     protected int workerCount;
 
@@ -168,61 +163,27 @@ public class BomEntity {
     }
 
     /**
-     * Gets the value of the materialCount property.
+     * 获取process属性的值。
      * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the materialCount property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getMaterialCount().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Double }
-     * 
-     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
      */
-    public List<Double> getMaterialCount() {
-        if (materialCount == null) {
-            materialCount = new ArrayList<Double>();
-        }
-        return this.materialCount;
+    public String getProcess() {
+        return process;
     }
 
     /**
-     * Gets the value of the materials property.
+     * 设置process属性的值。
      * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the materials property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getMaterials().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link String }
-     * 
-     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
      */
-    public List<String> getMaterials() {
-        if (materials == null) {
-            materials = new ArrayList<String>();
-        }
-        return this.materials;
+    public void setProcess(String value) {
+        this.process = value;
     }
 
     /**

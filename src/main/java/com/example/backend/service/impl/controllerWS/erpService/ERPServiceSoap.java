@@ -27,33 +27,6 @@ public interface ERPServiceSoap {
 
     /**
      * 
-     * @param arg0
-     * @return
-     *     returns com.example.backend.service.impl.controllerWS.erpService.BomEntity
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getBOMById", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetBOMById")
-    @ResponseWrapper(localName = "getBOMByIdResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetBOMByIdResponse")
-    @Action(input = "http://Service/ERPServiceSoap/getBOMByIdRequest", output = "http://Service/ERPServiceSoap/getBOMByIdResponse")
-    public BomEntity getBOMById(
-        @WebParam(name = "arg0", targetNamespace = "")
-        String arg0);
-
-    /**
-     * 
-     * @return
-     *     returns java.util.List<com.example.backend.service.impl.controllerWS.erpService.BomEntity>
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getAllBOMs", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetAllBOMs")
-    @ResponseWrapper(localName = "getAllBOMsResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetAllBOMsResponse")
-    @Action(input = "http://Service/ERPServiceSoap/getAllBOMsRequest", output = "http://Service/ERPServiceSoap/getAllBOMsResponse")
-    public List<BomEntity> getAllBOMs();
-
-    /**
-     * 
      * @return
      *     returns java.util.List<com.example.backend.service.impl.controllerWS.erpService.LineEntity>
      */
@@ -63,21 +36,6 @@ public interface ERPServiceSoap {
     @ResponseWrapper(localName = "getAllLineResourcesResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetAllLineResourcesResponse")
     @Action(input = "http://Service/ERPServiceSoap/getAllLineResourcesRequest", output = "http://Service/ERPServiceSoap/getAllLineResourcesResponse")
     public List<LineEntity> getAllLineResources();
-
-    /**
-     * 
-     * @param arg0
-     * @return
-     *     returns com.example.backend.service.impl.controllerWS.erpService.MaterialEntity
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getMaterialInfoById", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetMaterialInfoById")
-    @ResponseWrapper(localName = "getMaterialInfoByIdResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetMaterialInfoByIdResponse")
-    @Action(input = "http://Service/ERPServiceSoap/getMaterialInfoByIdRequest", output = "http://Service/ERPServiceSoap/getMaterialInfoByIdResponse")
-    public MaterialEntity getMaterialInfoById(
-        @WebParam(name = "arg0", targetNamespace = "")
-        String arg0);
 
     /**
      * 
@@ -103,6 +61,48 @@ public interface ERPServiceSoap {
     @ResponseWrapper(localName = "getLineResourceByIdResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetLineResourceByIdResponse")
     @Action(input = "http://Service/ERPServiceSoap/getLineResourceByIdRequest", output = "http://Service/ERPServiceSoap/getLineResourceByIdResponse")
     public LineEntity getLineResourceById(
+        @WebParam(name = "arg0", targetNamespace = "")
+        String arg0);
+
+    /**
+     * 
+     * @param arg0
+     * @return
+     *     returns com.example.backend.service.impl.controllerWS.erpService.MaterialEntity
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getMaterialInfoById", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetMaterialInfoById")
+    @ResponseWrapper(localName = "getMaterialInfoByIdResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetMaterialInfoByIdResponse")
+    @Action(input = "http://Service/ERPServiceSoap/getMaterialInfoByIdRequest", output = "http://Service/ERPServiceSoap/getMaterialInfoByIdResponse")
+    public MaterialEntity getMaterialInfoById(
+        @WebParam(name = "arg0", targetNamespace = "")
+        String arg0);
+
+    /**
+     * 
+     * @return
+     *     returns java.util.List<com.example.backend.service.impl.controllerWS.erpService.BomEntity>
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getAllBOMs", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetAllBOMs")
+    @ResponseWrapper(localName = "getAllBOMsResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetAllBOMsResponse")
+    @Action(input = "http://Service/ERPServiceSoap/getAllBOMsRequest", output = "http://Service/ERPServiceSoap/getAllBOMsResponse")
+    public List<BomEntity> getAllBOMs();
+
+    /**
+     * 
+     * @param arg0
+     * @return
+     *     returns com.example.backend.service.impl.controllerWS.erpService.BomEntity
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getBOMById", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetBOMById")
+    @ResponseWrapper(localName = "getBOMByIdResponse", targetNamespace = "http://Service/", className = "com.example.backend.service.impl.controllerWS.erpService.GetBOMByIdResponse")
+    @Action(input = "http://Service/ERPServiceSoap/getBOMByIdRequest", output = "http://Service/ERPServiceSoap/getBOMByIdResponse")
+    public BomEntity getBOMById(
         @WebParam(name = "arg0", targetNamespace = "")
         String arg0);
 

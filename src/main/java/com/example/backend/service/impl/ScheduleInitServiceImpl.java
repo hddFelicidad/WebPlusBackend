@@ -125,8 +125,7 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
 
                 BomEntity bomEntity = legacySystemService.getBOMById(itemId);
                 if(bomEntity != null){
-                    int standardOutput = Integer.parseInt(
-                            bomEntity.getStandardOutput().substring(0, bomEntity.getStandardOutput().indexOf("个")));
+                    int standardOutput = Integer.parseInt(bomEntity.getStandardOutput());
                     int workCount = bomEntity.getWorkerCount();
                     List<String> groupResourceList = bomEntity.getMainResource();
                     List<String> lineResourceList = bomEntity.getLineResource();

@@ -2,34 +2,7 @@
 <import namespace="http://Service/" location="http://localhost:8080/ERPService?wsdl=1"/>
 <binding xmlns:ns1="http://Service/" name="ERPServiceSoapPortBinding" type="ns1:ERPServiceSoap">
 <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
-<operation name="getBOMById">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
-</operation>
-<operation name="getAllBOMs">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
-</operation>
 <operation name="getAllLineResources">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
-</operation>
-<operation name="getMaterialInfoById">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -48,6 +21,33 @@
 </output>
 </operation>
 <operation name="getLineResourceById">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="getMaterialInfoById">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="getAllBOMs">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="getBOMById">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
