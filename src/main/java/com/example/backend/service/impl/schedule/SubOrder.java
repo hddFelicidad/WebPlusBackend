@@ -87,10 +87,11 @@ public class SubOrder {
 
     public int groupCannotWorkCount() {
         int count = 0;
-        boolean morning = 7 <= timeSlot.getTime().getHour() && timeSlot.getTime().getHour() < 19;
-        if (group1 != null && !group1.canWork(morning))
+        int beginHourInDay = timeSlot.getTime().getHour();
+        int lastTime = needHour;
+        if (group1 != null && !group1.canWork(beginHourInDay, lastTime))
             count++;
-        if (group2 != null && !group2.canWork(morning))
+        if (group2 != null && !group2.canWork(beginHourInDay, lastTime))
             count++;
         return count;
     }

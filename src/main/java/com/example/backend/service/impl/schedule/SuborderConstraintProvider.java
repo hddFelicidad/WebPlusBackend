@@ -88,7 +88,6 @@ public class SuborderConstraintProvider implements ConstraintProvider {
 
     // 员工负载均衡
     private Constraint softGroupLoadBalance(ConstraintFactory constraintFactory) {
-        // TODO: 测试
         return constraintFactory.from(SubOrder.class)
                 .groupBy(grouprLoadBalance(SubOrder::getGroup1, SubOrder::getGroup2)).penalize("softGroupLoadBalance",
                         HardSoftScore.ONE_SOFT, GroupLoadBalanceData::getZeroDeviationSquaredSumRoot);

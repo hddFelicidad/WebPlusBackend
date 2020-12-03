@@ -18,7 +18,6 @@ import javax.annotation.PostConstruct;
 import com.example.backend.data.OrderSchduleRepository;
 import com.example.backend.dto.ScheduleInputDto;
 import com.example.backend.dto.ScheduleOutputDto;
-import com.example.backend.dto.TimeIntervalDto;
 import com.example.backend.po.OrderSchedulePo;
 import com.example.backend.po.SubOrderSchedulePo;
 import com.example.backend.service.ScheduleService;
@@ -26,7 +25,6 @@ import com.example.backend.service.impl.schedule.Group;
 import com.example.backend.service.impl.schedule.Machine;
 import com.example.backend.service.impl.schedule.SubOrder;
 import com.example.backend.service.impl.schedule.SubOrderSchedule;
-import com.example.backend.service.impl.schedule.TimeInterval;
 import com.example.backend.service.impl.schedule.TimeSlot;
 
 import org.optaplanner.core.api.solver.SolverJob;
@@ -40,9 +38,6 @@ import lombok.var;
 
 @Service
 public class ScheduleServiceImpl implements ScheduleService {
-    // 以4个小时为粒度划分子订单
-    static final int subOrderMaxNeedTime = 4;
-
     @Autowired
     private OrderSchduleRepository orderScheduleRepository;
 
@@ -69,17 +64,18 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     // 对外调用排程的接口
     @Override
-    public void schedule(ScheduleInputDto input, Date startTime) {
+    public void schedule(ScheduleInputDto input, Date startTime, int subOrderMaxNeedTime, double denseFactor) {
         currentInput = input;
         timeSlotstartTime = startTime;
         solverJob = null;
         fixedOrderSubOrders = null;
         solutionDto = null;
-        scheduleInternal(input, startTime);
+        scheduleInternal(input, startTime, subOrderMaxNeedTime, denseFactor);
     }
 
     @Override
-    public boolean scheduleInsertUrgentOrder(ScheduleInputDto input, Date insertTime, ScheduleInputDto.Order order) {
+    public boolean scheduleInsertUrgentOrder(ScheduleInputDto input, Date insertTime, ScheduleInputDto.Order order,
+            int subOrderMaxNeedTime, double denseFactor) {
         // 如果没有上一次排程结果 直接失败
         // 可能是没有初始排程 或者正在排程
         if (solutionDto == null)
@@ -90,7 +86,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         solverJob = null;
         fixedOrderSubOrders = new HashMap<>();
         // 重新排程以优先完成新订单
-        scheduleInsertUrgentOrderInternal(currentInput, solutionDto, insertTime, order);
+        scheduleInsertUrgentOrderInternal(currentInput, solutionDto, insertTime, order, subOrderMaxNeedTime,
+                denseFactor);
         solutionDto = null;
         return true;
     }
@@ -127,7 +124,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     // 排程
-    private void scheduleInternal(ScheduleInputDto input, Date startTime) {
+    private void scheduleInternal(ScheduleInputDto input, Date startTime, int subOrderMaxNeedTime, double denseFactor) {
 
         // 定义排程输入
         List<Group> groups = createGroups(input.getGroups());
@@ -137,7 +134,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         startTimeCalendar.setTime(startTime);
 
         // Time grain
-        List<TimeSlot> timeSlots = getTimeSlots(startTime, orders);
+        List<TimeSlot> timeSlots = getTimeSlots(startTime, orders, subOrderMaxNeedTime, denseFactor);
 
         // 划分子订单
         List<SubOrder> subOrders = new ArrayList<>();
@@ -153,7 +150,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     // 插单排程
     private void scheduleInsertUrgentOrderInternal(ScheduleInputDto input, ScheduleOutputDto output, Date insertTime,
-            ScheduleInputDto.Order urgentOrder) {
+            ScheduleInputDto.Order urgentOrder, int subOrderMaxNeedTime, double denseFactor) {
         Map<String, ScheduleInputDto.Order> inputOrderMap = input.getOrders().stream()
                 .collect(Collectors.toMap(o -> o.getId(), o -> o));
         List<Group> groups = createGroups(input.getGroups());
@@ -165,7 +162,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 需要考虑当前子订单全部完成
         List<ScheduleInputDto.Order> orders = input.getOrders();
         orders.add(urgentOrder);
-        List<TimeSlot> timeSlots = getTimeSlots(insertTime, orders);
+        List<TimeSlot> timeSlots = getTimeSlots(insertTime, orders, subOrderMaxNeedTime, denseFactor);
 
         // 需要排程的子订单 初始值先加入紧急子订单
         List<SubOrder> subOrders = splitOrder(urgentOrder, insertTime, subOrderMaxNeedTime);
@@ -178,7 +175,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     subOrders.add(new SubOrder(outputSubOrder.getId(), outputOrder.getId(), inputOrder.getUrgent(),
                             outputSubOrder.getDurationTimeInHour(), inputOrder.getNeedMemberCount(),
                             inputOrder.getAvailableGroupIds(), inputOrder.getAvailableMachineTypeIds(),
-                            calculateTimeGrain(insertTime, inputOrder.getDeadline())));
+                            calculateTimeGrain(insertTime, inputOrder.getDeadline(), subOrderMaxNeedTime)));
                 else {
                     // 保存不需要重排的子订单
                     List<ScheduleOutputDto.SubOrder> outputSubOrders;
@@ -202,13 +199,14 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     // 得到可以工作的时间粒度段
-    private List<TimeSlot> getTimeSlots(Date startTime, List<ScheduleInputDto.Order> orders) {
+    private List<TimeSlot> getTimeSlots(Date startTime, List<ScheduleInputDto.Order> orders, int subOrderMaxNeedTime,
+            double denseFactor) {
         // 开始时间必须对齐时间粒度 或者简单地对齐7点与19点
         // 以小时为单位
         int totalTimeSlotHour = 0;
         for (ScheduleInputDto.Order order : orders)
             totalTimeSlotHour += order.getNeedHour() / subOrderMaxNeedTime + 1;
-        totalTimeSlotHour /= 3;
+        totalTimeSlotHour = (int) ((double) totalTimeSlotHour * denseFactor);
         List<TimeSlot> timeSlots = new ArrayList<>(totalTimeSlotHour);
         for (int i = 0; i < totalTimeSlotHour; i++) {
             TimeSlot tmpSlot = new TimeSlot(i,
@@ -233,7 +231,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         int suborderIndex = 0;
         Date deadline = order.getDeadline();
         int remainHours = order.getNeedHour();
-        Integer deadlineTimeGrain = calculateTimeGrain(startTime, deadline);
+        Integer deadlineTimeGrain = calculateTimeGrain(startTime, deadline, subOrderMaxNeedTime);
         while (remainHours > subOrderMaxNeedTime) {
             subOrders.add(new SubOrder(order.getId() + '_' + ++suborderIndex, order.getId(), order.getUrgent(),
                     subOrderMaxNeedTime, order.getNeedMemberCount(), order.getAvailableGroupIds(),
@@ -246,7 +244,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         return subOrders;
     }
 
-    private Integer calculateTimeGrain(Date startTime, Date time) {
+    private Integer calculateTimeGrain(Date startTime, Date time, int subOrderMaxNeedTime) {
         return (int) ((time.getTime() - startTime.getTime()) / subOrderMaxNeedTime / 1000L / 60L / 60L);
     }
 
@@ -329,17 +327,15 @@ public class ScheduleServiceImpl implements ScheduleService {
         return res;
     }
 
-    // 将输入转成内部类
-    private TimeInterval createTimeInterval(TimeIntervalDto dto) {
-        return new TimeInterval(dto.getStartHourOfDay(), dto.getEndHourOfDay());
-    }
-
-    private List<TimeInterval> createTimeIntervals(List<TimeIntervalDto> dtos) {
-        return dtos.stream().map(dto -> createTimeInterval(dto)).collect(Collectors.toList());
-    }
-
     private Group createGroup(ScheduleInputDto.Group dto) {
-        return new Group(dto.getId(), dto.getName(), dto.getMemberCount(), createTimeIntervals(dto.getWorkIntervals()));
+        // TODO: 三班倒特判
+        int startHourInDay;
+        int lastTime = 8;
+        if (dto.getWorkIntervals().size() == 1)
+            startHourInDay = dto.getWorkIntervals().get(0).getStartHourOfDay();
+        else
+            startHourInDay = 23;
+        return new Group(dto.getId(), dto.getName(), dto.getMemberCount(), startHourInDay, lastTime);
     }
 
     private List<Group> createGroups(List<ScheduleInputDto.Group> dtos) {

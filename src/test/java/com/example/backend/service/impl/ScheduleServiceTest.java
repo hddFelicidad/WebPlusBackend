@@ -25,8 +25,9 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 public class ScheduleServiceTest {
     static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
-    static final List<TimeIntervalDto> morningShift = Arrays.asList(new TimeIntervalDto(7, 19));
-    static final List<TimeIntervalDto> eveningShift = Arrays.asList(new TimeIntervalDto(19, 24),
+    static final List<TimeIntervalDto> morningShift = Arrays.asList(new TimeIntervalDto(7, 15));
+    static final List<TimeIntervalDto> afternoonShift = Arrays.asList(new TimeIntervalDto(15, 23));
+    static final List<TimeIntervalDto> eveningShift = Arrays.asList(new TimeIntervalDto(23, 24),
             new TimeIntervalDto(0, 7));
 
     @Autowired
@@ -36,7 +37,7 @@ public class ScheduleServiceTest {
 
     @Test
     void syncSchedule() throws ParseException {
-        serviceImpl.schedule(genSimpleInput(), dateFormat.parse("2020-11-3 07"));
+        serviceImpl.schedule(genSimpleInput(), dateFormat.parse("2020-11-3 07"), 4, 0.8);
         ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
     }
@@ -44,13 +45,14 @@ public class ScheduleServiceTest {
     @Test
     void syncScheduleUrgentOrder() throws ParseException {
         var input = genSimpleInput();
-        serviceImpl.schedule(input, dateFormat.parse("2020-11-3 07"));
+        serviceImpl.schedule(input, dateFormat.parse("2020-11-3 07"), 4, 0.8);
         ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
         serviceImpl.scheduleInsertUrgentOrder(input, dateFormat.parse("2020-11-3 19"),
                 new ScheduleInputDto.Order("urgent 1", "紧急订单 1", true, 5, 5,
-                        new HashSet<>(Arrays.asList("g1", "g15", "g16", "g40")),
-                        new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-4 12")));
+                        new HashSet<>(Arrays.asList("g-M0", "g-M1", "g-M2", "g-M3", "g-A0", "g-A1", "g-A1", "g-A2")),
+                        new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-4 12")),
+                4, 0.8);
         output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
     }
@@ -67,15 +69,18 @@ public class ScheduleServiceTest {
     private ScheduleInputDto genSimpleInput() throws ParseException {
         ScheduleInputDto input = new ScheduleInputDto();
         List<ScheduleInputDto.Group> groups = new ArrayList<>();
-        groups.add(new ScheduleInputDto.Group("g5", "5组-童玲 (5)", 5, morningShift));
-        groups.add(new ScheduleInputDto.Group("g9", "9组-张敏（5）", 5, morningShift));
-        groups.add(new ScheduleInputDto.Group("g1", "1组-彭慧 (5)", 5, eveningShift));
-        groups.add(new ScheduleInputDto.Group("g12", "12组-姚兰（5）", 5, eveningShift));
-        groups.add(new ScheduleInputDto.Group("g15", "15组-李娟（5）", 5, eveningShift));
-        groups.add(new ScheduleInputDto.Group("g3", "3组-李翠 (4)", 4, morningShift));
-        groups.add(new ScheduleInputDto.Group("g14", "14组-周  清（4）", 4, morningShift));
-        groups.add(new ScheduleInputDto.Group("g16", "16组-朱美（4）", 4, eveningShift));
-        groups.add(new ScheduleInputDto.Group("g40", "40组-高燕（5）", 5, morningShift));
+        groups.add(new ScheduleInputDto.Group("g-M0", "5组-童玲 (5)", 5, morningShift));
+        groups.add(new ScheduleInputDto.Group("g-M1", "9组-张敏（5）", 5, morningShift));
+        groups.add(new ScheduleInputDto.Group("g-M2", "9组-张敏（5）", 5, morningShift));
+        groups.add(new ScheduleInputDto.Group("g-M3", "9组-张敏（5）", 5, morningShift));
+        groups.add(new ScheduleInputDto.Group("g-A0", "1组-彭慧 (5)", 5, afternoonShift));
+        groups.add(new ScheduleInputDto.Group("g-A1", "12组-姚兰（5）", 5, afternoonShift));
+        groups.add(new ScheduleInputDto.Group("g-A2", "12组-姚兰（5）", 5, afternoonShift));
+        groups.add(new ScheduleInputDto.Group("g-A3", "12组-姚兰（5）", 5, afternoonShift));
+        groups.add(new ScheduleInputDto.Group("g-E0", "15组-李娟（5）", 5, eveningShift));
+        groups.add(new ScheduleInputDto.Group("g-E1", "3组-李翠 (4)", 4, eveningShift));
+        groups.add(new ScheduleInputDto.Group("g-E2", "3组-李翠 (4)", 4, eveningShift));
+        groups.add(new ScheduleInputDto.Group("g-E3", "3组-李翠 (4)", 4, eveningShift));
         List<ScheduleInputDto.Machine> machines = new ArrayList<>();
         machines.add(new ScheduleInputDto.Machine("m1", "line01", "mt1"));
         machines.add(new ScheduleInputDto.Machine("m2", "line01", "mt1"));
@@ -93,13 +98,13 @@ public class ScheduleServiceTest {
         input.setMachines(machines);
         input.setOrders(orders);
         orders.add(new ScheduleInputDto.Order("413095", "订单413095", false, 24, 8,
-                new HashSet<>(Arrays.asList("g5", "g9", "g1", "g12")), new HashSet<>(Arrays.asList("mt1", "mt2")),
-                dateFormat.parse("2020-11-5 10")));
+                new HashSet<>(Arrays.asList("g-M0", "g-M1", "g-M2", "g-M3", "g-A0", "g-A1", "g-A2", "g-A3")),
+                new HashSet<>(Arrays.asList("mt1", "mt2")), dateFormat.parse("2020-11-5 10")));
         orders.add(new ScheduleInputDto.Order("414837", "订单414837", false, 36, 8,
-                new HashSet<>(Arrays.asList("g3", "g14", "g16", "g40")), new HashSet<>(Arrays.asList("mt2", "mt3")),
-                dateFormat.parse("2020-11-5 12")));
-        orders.add(new ScheduleInputDto.Order("416153", "订单416153", false, 48, 10,
-                new HashSet<>(Arrays.asList("g1", "g15", "g16", "g40")),
+                new HashSet<>(Arrays.asList("g-A0", "g-A1", "g-A2", "g-A3", "g-E0", "g-E1", "g-E2", "g-E3")),
+                new HashSet<>(Arrays.asList("mt2", "mt3")), dateFormat.parse("2020-11-5 12")));
+        orders.add(new ScheduleInputDto.Order("416153", "订单416153", false, 48, 9,
+                new HashSet<>(Arrays.asList("g-E0", "g-E1", "g-E2", "g-E3", "g-M0", "g-M1", "g-M2", "g-M3")),
                 new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-5 14")));
         return input;
     }
@@ -196,5 +201,5 @@ public class ScheduleServiceTest {
         ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
     }
-    
+
 }

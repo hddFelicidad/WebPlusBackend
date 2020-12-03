@@ -11,7 +11,7 @@ import org.optaplanner.core.api.score.stream.ConstraintProvider;
 import org.optaplanner.core.api.score.stream.Joiners;
 import org.optaplanner.core.impl.score.stream.uni.DefaultUniConstraintCollector;
 
-public class SubOrderConstraintProvider implements ConstraintProvider {
+public class SuborderConstraintProvider implements ConstraintProvider {
 
     @Override
     public Constraint[] defineConstraints(ConstraintFactory constraintFactory) {
@@ -88,7 +88,6 @@ public class SubOrderConstraintProvider implements ConstraintProvider {
 
     // 员工负载均衡
     private Constraint softGroupLoadBalance(ConstraintFactory constraintFactory) {
-        // TODO: 测试
         return constraintFactory.from(SubOrder.class)
                 .groupBy(grouprLoadBalance(SubOrder::getGroup1, SubOrder::getGroup2)).penalize("softGroupLoadBalance",
                         HardSoftScore.ONE_SOFT, GroupLoadBalanceData::getZeroDeviationSquaredSumRoot);
