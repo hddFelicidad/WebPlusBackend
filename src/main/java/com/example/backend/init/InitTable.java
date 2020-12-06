@@ -1,13 +1,16 @@
 package com.example.backend.init;
 
+import com.example.backend.data.BomRepository;
 import com.example.backend.data.GroupRepository;
 import com.example.backend.data.MachineRepository;
 import com.example.backend.data.OrderRepository;
+import com.example.backend.po.BomPo;
 import com.example.backend.po.GroupPo;
 import com.example.backend.po.MachinePo;
 import com.example.backend.po.OrderPo;
 import com.example.backend.service.LegacySystemService;
 import com.example.backend.service.impl.controllerWS.attendanceService.CalendarEntity;
+import com.example.backend.service.impl.controllerWS.erpService.BomEntity;
 import com.example.backend.service.impl.controllerWS.erpService.ResourceEntity;
 import com.example.backend.service.impl.controllerWS.orderService.OrderEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +29,15 @@ public class InitTable {
     @Autowired
     OrderRepository orderRepository;
     @Autowired
+    BomRepository bomRepository;
+    @Autowired
     LegacySystemService legacySystemService;
 
     public void tableInit(){
         groupInit();
         machineInit();
         orderInit();
+        bomInit();
     }
 
     public void groupInit(){
@@ -121,6 +127,20 @@ public class InitTable {
                 orderRepository.save(orderPo);
             }
             System.out.println("Order init end ...");
+        }
+    }
+
+    public void bomInit(){
+        var boms = bomRepository.findAll();
+        if(boms.isEmpty()){
+            System.out.println("Bom init begin ...");
+            List<BomEntity> bomInfoList = legacySystemService.getAllBOMs();
+            for(BomEntity bomInfo: bomInfoList){
+                BomPo bomPo = new BomPo(null, bomInfo.getId(), bomInfo.getProcess(), bomInfo.getMainResource(),
+                        bomInfo.getLineResource(), bomInfo.getChangeTime(), bomInfo.getStandardOutput(), bomInfo.getWorkerCount());
+                bomRepository.save(bomPo);
+            }
+            System.out.println("Bom init end ...");
         }
     }
 }

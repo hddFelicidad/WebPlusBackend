@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
-import com.example.backend.data.OrderSchduleRepository;
+import com.example.backend.data.OrderScheduleRepository;
 import com.example.backend.dto.ScheduleInputDto;
 import com.example.backend.dto.ScheduleOutputDto;
 import com.example.backend.po.OrderSchedulePo;
@@ -39,7 +39,7 @@ import lombok.var;
 @Service
 public class ScheduleServiceImpl implements ScheduleService {
     @Autowired
-    private OrderSchduleRepository orderScheduleRepository;
+    private OrderScheduleRepository orderScheduleRepository;
 
     @Autowired
     private SolverManager<SubOrderSchedule, UUID> solverManager;

@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import com.example.backend.data.OrderSchduleRepository;
+import com.example.backend.data.OrderScheduleRepository;
 import com.example.backend.dto.ScheduleInputDto;
 import com.example.backend.dto.ScheduleOutputDto;
 import com.example.backend.dto.TimeIntervalDto;
@@ -117,7 +117,7 @@ public class ScheduleServiceTest {
 
     @Test
     void mockLoadSolutionTest() {
-        OrderSchduleRepository mockOSR = mock(OrderSchduleRepository.class);
+        OrderScheduleRepository mockOSR = mock(OrderScheduleRepository.class);
         List<OrderSchedulePo> orderSchedulePos = new ArrayList<>();
         when(mockOSR.findAll()).thenReturn(orderSchedulePos);
         assert (serviceImpl.loadSolution() != null);
