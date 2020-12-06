@@ -1,10 +1,12 @@
 package com.example.backend.service.impl;
 
+import com.example.backend.data.BomRepository;
 import com.example.backend.data.GroupRepository;
 import com.example.backend.data.MachineRepository;
 import com.example.backend.data.OrderRepository;
 import com.example.backend.dto.ScheduleInputDto;
 import com.example.backend.dto.TimeIntervalDto;
+import com.example.backend.po.BomPo;
 import com.example.backend.po.GroupPo;
 import com.example.backend.po.MachinePo;
 import com.example.backend.po.OrderPo;
@@ -14,6 +16,7 @@ import com.example.backend.service.ScheduleService;
 import com.example.backend.service.TimerService;
 import com.example.backend.service.impl.controllerWS.erpService.BomEntity;
 import com.example.backend.vo.ResponseVO;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +37,8 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
     MachineRepository machineRepository;
     @Autowired
     OrderRepository orderRepository;
+    @Autowired
+    BomRepository bomRepository;
     @Autowired
     LegacySystemService legacySystemService;
 
@@ -123,31 +128,34 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
                 String itemId = eachOrder.getItemId();
                 int itemCount = eachOrder.getItemCount();
 
-                BomEntity bomEntity = legacySystemService.getBOMById(itemId);
-                if(bomEntity != null){
-                    int standardOutput = Integer.parseInt(bomEntity.getStandardOutput());
-                    int workCount = bomEntity.getWorkerCount();
-                    List<String> groupResourceList = bomEntity.getMainResource();
-                    List<String> lineResourceList = bomEntity.getLineResource();
+                var bomPoList = bomRepository.findBomPosByBomId(itemId);
+                if(!bomPoList.isEmpty()){
+                    for(BomPo bomPo: bomPoList){
+                        String process = bomPo.getProcess();
+                        int standardOutput = Integer.parseInt(bomPo.getStandardOutput());
+                        int workCount = bomPo.getWorkerCount();
+                        List<String> groupResourceList = bomPo.getGroupResourceList();
+                        List<String> lineResourceList = bomPo.getMachineResourceList();
 
-                    int needHour = itemCount / standardOutput;
+                        int needHour = itemCount / standardOutput;
 
-                    List<String> availableGroupList = new ArrayList<>();
-                    for (String groupName : groupResourceList) {
-                        GroupPo groupPo = groupRepository.findGroupPoByGroupName(groupName);
-                        if (groupPo != null)
-                            availableGroupList.add(groupPo.getGroupId());
+                        List<String> availableGroupList = new ArrayList<>();
+                        for (String groupName : groupResourceList) {
+                            GroupPo groupPo = groupRepository.findGroupPoByGroupName(groupName);
+                            if (groupPo != null)
+                                availableGroupList.add(groupPo.getGroupId());
+                        }
+                        List<String> availableMachineList = new ArrayList<>();
+                        for (String machineName : lineResourceList) {
+                            List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineName(machineName);
+                            if (!machinePoList.isEmpty())
+                                availableMachineList.add(machinePoList.get(0).getMachineId());
+                        }
+
+                        ScheduleInputDto.Order order = new ScheduleInputDto.Order(orderId + "-" + process, orderName + "-" + process, false, needHour,
+                                workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl);
+                        orderList.add(order);
                     }
-                    List<String> availableMachineList = new ArrayList<>();
-                    for (String machineName : lineResourceList) {
-                        List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineName(machineName);
-                        if (!machinePoList.isEmpty())
-                            availableMachineList.add(machinePoList.get(0).getMachineId());
-                    }
-
-                    ScheduleInputDto.Order order = new ScheduleInputDto.Order(orderId, orderName, false, needHour,
-                            workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl);
-                    orderList.add(order);
                 }
             }
             return orderList;
