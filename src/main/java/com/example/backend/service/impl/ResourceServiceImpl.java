@@ -413,10 +413,13 @@ public class ResourceServiceImpl implements ResourceService {
                 for(int n = machine_count; n < resourceIdList.size(); n++){
                     List<Integer> tmp = Arrays.asList(1, 2, 3, 4, 5);
                     int progress = 0;
+                    String groupId = resourceIdList.get(n).substring(2);
+                    String className = groupRepository.findGroupPoByGroupId(groupId).getClassName();
+                    int workHour = getWorkHourByDay(className);
                     if(flag.equals("day")){
-                        progress = resourceWorkHourList.get(n) * 100 / 12;
+                        progress = resourceWorkHourList.get(n) * 100 / workHour;
                     }else{
-                        progress = resourceWorkHourList.get(n) * 100 / getWorkHourByMonth(currentStartTime, tmp, 12);
+                        progress = resourceWorkHourList.get(n) * 100 / getWorkHourByMonth(currentStartTime, tmp, workHour);
                     }
                     resourceLoadList.add(progress);
                     groupLoad += progress;
@@ -581,7 +584,8 @@ public class ResourceServiceImpl implements ResourceService {
         for(int i = 0; i < groupIdList.size(); i++){
             String groupId = groupIdList.get(i);
             String groupName = groupRepository.findGroupPoByGroupId(groupId).getGroupName();
-            String percent = groupOccupyHourList.get(i) * 100 / 12 / dayDiff + "%";
+            String className = groupRepository.findGroupPoByGroupId(groupId).getClassName();
+            String percent = groupOccupyHourList.get(i) * 100 / getWorkHourByDay(className) / dayDiff + "%";
             String start = groupFirstOccupyTime.get(i);
             int duration = 0;
             if(groupOccupyHourList.get(i) > 0){
@@ -761,6 +765,20 @@ public class ResourceServiceImpl implements ResourceService {
         }
 
         return count;
+    }
+
+    public int getWorkHourByDay(String className){
+        switch (className){
+            case "DAY":
+            case "NIGHT":
+                return 12;
+            case "MORNING":
+            case "AFTERNOON":
+            case "EVENING":
+                return 8;
+
+        }
+        return 0;
     }
 
     public boolean checkGroupExist(String groupId){
