@@ -14,7 +14,6 @@ import com.example.backend.service.LegacySystemService;
 import com.example.backend.service.ScheduleInitService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.service.TimerService;
-import com.example.backend.service.impl.controllerWS.erpService.BomEntity;
 import com.example.backend.vo.ResponseVO;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
