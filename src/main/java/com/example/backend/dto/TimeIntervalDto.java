@@ -16,7 +16,7 @@ public class TimeIntervalDto {
      */
     private Integer startHourOfDay;
     /**
-     * 终止时间 精确到小时 取值为1-24 开区间
+     * 持续的时间 精确到小时 取值为1-24
      */
-    private Integer endHourOfDay;
+    private Integer lastTime;
 }

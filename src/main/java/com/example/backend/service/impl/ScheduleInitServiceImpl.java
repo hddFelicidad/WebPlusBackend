@@ -69,22 +69,21 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
                 tmpGroup.setId(eachGroup.getGroupId());
                 tmpGroup.setName(eachGroup.getGroupName());
                 tmpGroup.setMemberCount(eachGroup.getMemberCount());
-                List<TimeIntervalDto> workIntervals = new ArrayList<>();
+                TimeIntervalDto workInterval = null;
                 switch (eachGroup.getClassName()) {
                     case "DAY":
-                        workIntervals.add(new TimeIntervalDto(7, 19));
+                        workInterval = new TimeIntervalDto(7, 12);
                         break;
                     case "NIGHT":
-                        workIntervals.add(new TimeIntervalDto(19, 24));
-                        workIntervals.add(new TimeIntervalDto(0, 7));
+                        workInterval = new TimeIntervalDto(19, 12);
                         break;
                     case "ALL":
-                        workIntervals.add(new TimeIntervalDto(0, 24));
+                        workInterval = new TimeIntervalDto(0, 24);
                         break;
                     default:
                         break;
                 }
-                tmpGroup.setWorkIntervals(workIntervals);
+                tmpGroup.setWorkInterval(workInterval);
                 groupList.add(tmpGroup);
             }
             return groupList;

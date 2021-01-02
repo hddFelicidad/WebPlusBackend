@@ -328,14 +328,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     private Group createGroup(ScheduleInputDto.Group dto) {
-        // TODO: 三班倒特判
-        int startHourInDay;
-        int lastTime = 8;
-        if (dto.getWorkIntervals().size() == 1)
-            startHourInDay = dto.getWorkIntervals().get(0).getStartHourOfDay();
-        else
-            startHourInDay = 23;
-        return new Group(dto.getId(), dto.getName(), dto.getMemberCount(), startHourInDay, lastTime);
+        return new Group(dto.getId(), dto.getName(), dto.getMemberCount(), dto.getWorkInterval().getStartHourOfDay(), dto.getWorkInterval().getLastTime());
     }
 
     private List<Group> createGroups(List<ScheduleInputDto.Group> dtos) {

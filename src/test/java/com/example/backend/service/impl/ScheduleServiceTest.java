@@ -25,10 +25,9 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 public class ScheduleServiceTest {
     static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
-    static final List<TimeIntervalDto> morningShift = Arrays.asList(new TimeIntervalDto(7, 15));
-    static final List<TimeIntervalDto> afternoonShift = Arrays.asList(new TimeIntervalDto(15, 23));
-    static final List<TimeIntervalDto> eveningShift = Arrays.asList(new TimeIntervalDto(23, 24),
-            new TimeIntervalDto(0, 7));
+    static final TimeIntervalDto morningShift = new TimeIntervalDto(7, 8);
+    static final TimeIntervalDto afternoonShift = new TimeIntervalDto(15, 8);
+    static final TimeIntervalDto eveningShift = new TimeIntervalDto(23, 8);
 
     @Autowired
     ScheduleServiceImpl serviceImpl;

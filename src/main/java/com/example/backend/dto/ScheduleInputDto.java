@@ -27,7 +27,7 @@ public class ScheduleInputDto {
         /**
          * 一天之内的所有工作时间段
          */
-        private List<TimeIntervalDto> workIntervals;
+        private TimeIntervalDto workInterval;
     }
 
     @Data
