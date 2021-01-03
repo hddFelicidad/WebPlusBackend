@@ -18,7 +18,8 @@ public class SuborderConstraintProvider implements ConstraintProvider {
         return new Constraint[] { machineNotRight(constraintFactory), groupNotRight(constraintFactory),
                 useSameGroup(constraintFactory), groupMemberCountNotEnough(constraintFactory),
                 groupCannotWork(constraintFactory), groupConflict(constraintFactory),
-                machineConflict(constraintFactory), ddlExceedUrgent(constraintFactory), ddlExceed(constraintFactory),
+                machineConflict(constraintFactory), requiredSubOrder(constraintFactory),
+                ddlExceedUrgent(constraintFactory), ddlExceed(constraintFactory),
                 softMachineLoadBalance(constraintFactory), softGroupLoadBalance(constraintFactory) };
     }
 
@@ -65,6 +66,11 @@ public class SuborderConstraintProvider implements ConstraintProvider {
                 .from(SubOrder.class).join(SubOrder.class, Joiners.lessThan(SubOrder::getId),
                         Joiners.equal(SubOrder::getTimeSlot), Joiners.equal(SubOrder::getMachine))
                 .penalize("machineConflict", HardSoftScore.ONE_HARD);
+    }
+
+    private Constraint requiredSubOrder(ConstraintFactory constraintFactory) {
+        return constraintFactory.from(SubOrder.class).penalize("requiredSubOrder", HardSoftScore.ONE_HARD,
+                SubOrder::requiredSuborderBoom);
     }
 
     // 插单不超时

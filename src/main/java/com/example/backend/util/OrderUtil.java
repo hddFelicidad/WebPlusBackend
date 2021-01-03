@@ -107,7 +107,7 @@ public class OrderUtil {
                 }
                 subOrderId++;
             }
-            ScheduleOutputDto.Order newOrder = new ScheduleOutputDto.Order(originalOrder.getId(), targetSubOrderList);
+            ScheduleOutputDto.Order newOrder = new ScheduleOutputDto.Order(originalOrder.getId(), null, targetSubOrderList);
             targetOrderList.add(newOrder);
         }
         return targetOrderList;

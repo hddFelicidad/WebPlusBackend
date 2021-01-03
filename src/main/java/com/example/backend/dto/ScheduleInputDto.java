@@ -63,5 +63,9 @@ public class ScheduleInputDto {
          */
         private HashSet<String> availableMachineTypeIds;
         private Date deadline;
+        /**
+         * 在完成当前订单之前需要先完成其他的订单
+         */
+        private String requiredOrderId;
     }
 }

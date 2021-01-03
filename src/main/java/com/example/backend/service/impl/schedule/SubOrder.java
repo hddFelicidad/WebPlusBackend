@@ -18,6 +18,8 @@ import lombok.Setter;
 public class SubOrder {
     private String id;
     private String orderId;
+    private String requiredOrderId;
+    private List<SubOrder> requiredSubOrders;
     private Boolean urgent;
     private Integer needHour;
     private Integer needMemberCount;
@@ -36,8 +38,9 @@ public class SubOrder {
     @PlanningVariable(valueRangeProviderRefs = "timeSlotRange")
     private TimeSlot timeSlot;
 
-    public SubOrder(String id, String orderId, Boolean urgent, Integer needHour, Integer needMemberCount,
-            HashSet<String> availableGroupIds, HashSet<String> availableMachineTypeIds, Integer deadLineTimeGrain) {
+    public SubOrder(String id, String orderId, String requiredOrderId, Boolean urgent, Integer needHour,
+            Integer needMemberCount, HashSet<String> availableGroupIds, HashSet<String> availableMachineTypeIds,
+            Integer deadLineTimeGrain) {
         this.id = id;
         this.orderId = orderId;
         this.urgent = urgent;
@@ -93,6 +96,16 @@ public class SubOrder {
             count++;
         if (group2 != null && !group2.canWork(beginHourInDay, lastTime))
             count++;
+        return count;
+    }
+
+    public int requiredSuborderBoom() {
+        if (requiredSubOrders == null)
+            return 0;
+        int count = 0;
+        for (SubOrder subOrder : requiredSubOrders)
+            if (subOrder.timeSlot != null && timeSlot != null && subOrder.timeSlot.getIndex() > timeSlot.getIndex())
+                count++;
         return count;
     }
 

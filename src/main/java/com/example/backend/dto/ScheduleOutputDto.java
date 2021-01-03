@@ -17,7 +17,14 @@ public class ScheduleOutputDto {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Order {
+        /**
+         * 订单id
+         */
         private String id;
+        /**
+         * 完成本订单之前需要完成的其他订单的id，比如测试订单需要在装配订单之后
+         */
+        private String requiredOrderId;
         private List<SubOrder> subOrders;
     }
 

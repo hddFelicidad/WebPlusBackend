@@ -25,6 +25,8 @@ public class OrderSchedulePo {
 
     private String orderId;
 
+    private String requiredOrderId;
+
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<SubOrderSchedulePo> subOrders;
 }

@@ -50,7 +50,7 @@ public class ScheduleServiceTest {
         serviceImpl.scheduleInsertUrgentOrder(input, dateFormat.parse("2020-11-3 19"),
                 new ScheduleInputDto.Order("urgent 1", "紧急订单 1", true, 5, 5,
                         new HashSet<>(Arrays.asList("g-M0", "g-M1", "g-M2", "g-M3", "g-A0", "g-A1", "g-A1", "g-A2")),
-                        new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-4 12")),
+                        new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-4 12"), null),
                 4, 0.8);
         output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
@@ -98,13 +98,13 @@ public class ScheduleServiceTest {
         input.setOrders(orders);
         orders.add(new ScheduleInputDto.Order("413095", "订单413095", false, 24, 8,
                 new HashSet<>(Arrays.asList("g-M0", "g-M1", "g-M2", "g-M3", "g-A0", "g-A1", "g-A2", "g-A3")),
-                new HashSet<>(Arrays.asList("mt1", "mt2")), dateFormat.parse("2020-11-5 10")));
+                new HashSet<>(Arrays.asList("mt1", "mt2")), dateFormat.parse("2020-11-5 10"), null));
         orders.add(new ScheduleInputDto.Order("414837", "订单414837", false, 36, 8,
                 new HashSet<>(Arrays.asList("g-A0", "g-A1", "g-A2", "g-A3", "g-E0", "g-E1", "g-E2", "g-E3")),
-                new HashSet<>(Arrays.asList("mt2", "mt3")), dateFormat.parse("2020-11-5 12")));
+                new HashSet<>(Arrays.asList("mt2", "mt3")), dateFormat.parse("2020-11-5 12"), null));
         orders.add(new ScheduleInputDto.Order("416153", "订单416153", false, 48, 9,
                 new HashSet<>(Arrays.asList("g-E0", "g-E1", "g-E2", "g-E3", "g-M0", "g-M1", "g-M2", "g-M3")),
-                new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-5 14")));
+                new HashSet<>(Arrays.asList("mt1", "mt3", "mt4")), dateFormat.parse("2020-11-5 14"), null));
         return input;
     }
 
@@ -144,13 +144,13 @@ public class ScheduleServiceTest {
         input.setOrders(orders);
         orders.add(new ScheduleInputDto.Order("413095", "订单413095", false, 12, 8,
                 new HashSet<>(Arrays.asList("g1", "g2", "g3", "g4")), new HashSet<>(Arrays.asList("mt1", "mt2")),
-                dateFormat.parse("2020-11-4 14")));
+                dateFormat.parse("2020-11-4 14"), null));
         orders.add(
                 new ScheduleInputDto.Order("414837", "订单414837", false, 12, 5, new HashSet<>(Arrays.asList("g1", "g4")),
-                        new HashSet<>(Arrays.asList("mt2", "mt3")), dateFormat.parse("2020-11-4 12")));
+                        new HashSet<>(Arrays.asList("mt2", "mt3")), dateFormat.parse("2020-11-4 12"), null));
         orders.add(new ScheduleInputDto.Order("416153", "订单416153", false, 15, 5,
                 new HashSet<>(Arrays.asList("g2", "g3", "g4")), new HashSet<>(Arrays.asList("mt1", "mt3")),
-                dateFormat.parse("2020-11-5 14")));
+                dateFormat.parse("2020-11-5 14"), null));
 
         serviceImpl.schedule(input, dateFormat.parse("2020-11-4 07"));
         ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
@@ -173,7 +173,7 @@ public class ScheduleServiceTest {
         input.setOrders(orders);
         orders.add(
                 new ScheduleInputDto.Order("413095", "订单413095", false, 24, 4, new HashSet<>(Arrays.asList("g1", "g2")),
-                        new HashSet<>(Arrays.asList("mt1")), dateFormat.parse("2020-11-10 10")));
+                        new HashSet<>(Arrays.asList("mt1")), dateFormat.parse("2020-11-10 10"), null));
         serviceImpl.schedule(input, dateFormat.parse("2020-11-9 07"));
         ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
@@ -195,10 +195,12 @@ public class ScheduleServiceTest {
         input.setOrders(orders);
         orders.add(new ScheduleInputDto.Order("413095", "订单413095", false, 12, 4,
                 new HashSet<>(Arrays.asList("g1", "g2", "g3")), new HashSet<>(Arrays.asList("mt1")),
-                dateFormat.parse("2020-12-10 10")));
-        serviceImpl.schedule(input, dateFormat.parse("2020-11-9 07"));
+                dateFormat.parse("2020-12-10 10"), null));
+        serviceImpl.schedule(input, dateFormat.parse("2020-11-9 07"), 4, 2);
         ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
         assert (output.getOrders().size() != 0);
     }
+
+    // TODO: 添加阶段测试
 
 }

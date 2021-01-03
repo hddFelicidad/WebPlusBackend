@@ -151,7 +151,7 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
                         }
 
                         ScheduleInputDto.Order order = new ScheduleInputDto.Order(orderId + "-" + process, orderName + "-" + process, false, needHour,
-                                workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl);
+                                workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl, null);
                         orderList.add(order);
                     }
                 }
