@@ -201,6 +201,29 @@ public class ScheduleServiceTest {
         assert (output.getOrders().size() != 0);
     }
 
-    // TODO: 添加阶段测试
+    
+    @Test
+    void stageTest() throws ParseException {
+        ScheduleInputDto input = new ScheduleInputDto();
+        List<ScheduleInputDto.Group> groups = new ArrayList<>();
+        groups.add(new ScheduleInputDto.Group("g1", "5组-童玲 (5)", 5, morningShift));
+        groups.add(new ScheduleInputDto.Group("g2", "9组-张敏（5）", 5, morningShift));
+        List<ScheduleInputDto.Machine> machines = new ArrayList<>();
+        machines.add(new ScheduleInputDto.Machine("m1", "line01", "mt1"));
+        machines.add(new ScheduleInputDto.Machine("m2", "line01", "mt1"));
+        List<ScheduleInputDto.Order> orders = new ArrayList<>();
+        input.setGroups(groups);
+        input.setMachines(machines);
+        input.setOrders(orders);
+        orders.add(new ScheduleInputDto.Order("order1 装配", "订单413095 装配", false, 12, 4,
+                new HashSet<>(Arrays.asList("g1", "g2")), new HashSet<>(Arrays.asList("mt1")),
+                dateFormat.parse("2020-12-10 10"), null));
+        orders.add(new ScheduleInputDto.Order("order2 测试", "订单413095 测试", false, 12, 4,
+                new HashSet<>(Arrays.asList("g1", "g2")), new HashSet<>(Arrays.asList("mt1")),
+                dateFormat.parse("2020-12-10 10"), "order1 装配"));
+        serviceImpl.schedule(input, dateFormat.parse("2020-11-9 07"), 4, 2);
+        ScheduleOutputDto output = serviceImpl.waitForScheduleOutput();
+        assert (output.getOrders().size() != 0);
+    }
 
 }
