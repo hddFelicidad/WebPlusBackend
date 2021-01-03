@@ -81,7 +81,7 @@ public class SuborderConstraintProvider implements ConstraintProvider {
 
     // 机器利用率最高
     private Constraint softMachineLoadBalance(ConstraintFactory constraintFactory) {
-        return constraintFactory.from(SubOrder.class).groupBy(machineLoadBalance(SubOrder::getMachine)).penalize(
+        return constraintFactory.from(SubOrder.class).groupBy(machineLoadBalance(SubOrder::getMachine)).reward(
                 "softMachineLoadBalance", HardSoftScore.ONE_SOFT,
                 MachineLoadBalanceData::getZeroDeviationSquaredSumRoot);
     }
@@ -128,7 +128,7 @@ public class SuborderConstraintProvider implements ConstraintProvider {
         }
 
         public int getZeroDeviationSquaredSumRoot() {
-            return -(int) (Math.sqrt((double) squaredSum));
+            return (int) (Math.sqrt((double) squaredSum));
         }
     }
 
