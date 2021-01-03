@@ -178,12 +178,16 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (var outputOrder : output.getOrders()) {
             ScheduleInputDto.Order inputOrder = inputOrderMap.get(outputOrder.getId());
             for (ScheduleOutputDto.SubOrder outputSubOrder : outputOrder.getSubOrders()) {
-                if (outputSubOrder.getEndTime().after(insertTime))
+                if (outputSubOrder.getEndTime().after(insertTime)) {
                     // 需要重新安排
                     subOrders.add(new SubOrder(outputSubOrder.getId(), outputOrder.getId(), outputOrder.getRequiredOrderId(), inputOrder.getUrgent(),
                             outputSubOrder.getDurationTimeInHour(), inputOrder.getNeedMemberCount(),
                             inputOrder.getAvailableGroupIds(), inputOrder.getAvailableMachineTypeIds(),
                             calculateTimeGrain(insertTime, inputOrder.getDeadline(), subOrderMaxNeedTime)));
+                    if (!subOrderMap.containsKey(outputOrder.getId()))
+                        subOrderMap.put(outputOrder.getId(), new ArrayList<>());
+                    subOrderMap.get(outputOrder.getId()).add(subOrders.get(subOrders.size() - 1));
+                }
                 else {
                     // 保存不需要重排的子订单
                     List<ScheduleOutputDto.SubOrder> outputSubOrders;
@@ -198,7 +202,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
         }
 
-        // TODO: RequiredOrders
+        // TODO: 紧急订单分阶段还没写
+        for (var subOrder : subOrders)
+            subOrder.setRequiredSubOrders(subOrderMap.get(subOrder.getRequiredOrderId()));
 
         // 排程
         SubOrderSchedule schedule = new SubOrderSchedule(insertTimeCalendar.get(Calendar.HOUR_OF_DAY), groups, machines,
