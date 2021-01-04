@@ -52,6 +52,7 @@ public class OrderUtil {
             List<ScheduleOutputDto.Order> tmpOrderList = orderRemake(originalOrderList);
             for(ScheduleOutputDto.Order order: tmpOrderList){
                 String orderId = order.getId();
+                orderId = orderId.substring(0, orderId.indexOf("-"));
                 OrderPo orderPo = orderRepository.findOrderPoByOrderId(orderId);
                 if(!orderPo.getDeadLine().after(endDate))
                     targetOrderList.add(order);
@@ -66,6 +67,7 @@ public class OrderUtil {
             List<ScheduleOutputDto.Order> targetOrderList = new ArrayList<>();
             for(ScheduleOutputDto.Order order: originalOrderList){
                 String orderId = order.getId();
+                orderId = orderId.substring(0, orderId.indexOf("-"));
                 String itemId = orderRepository.findOrderPoByOrderId(orderId).getItemId();
                 if(itemId.equals(productId))
                     targetOrderList.add(order);

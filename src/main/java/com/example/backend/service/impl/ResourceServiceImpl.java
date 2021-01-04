@@ -119,6 +119,15 @@ public class ResourceServiceImpl implements ResourceService {
                 case "ALL":
                     shift = 1;
                     break;
+                case "MORNING":
+                    shift = 4;
+                    break;
+                case "AFTERNOON":
+                    shift = 5;
+                    break;
+                case "EVENING":
+                    shift = 6;
+                    break;
                 default:
                     break;
             }
@@ -190,20 +199,7 @@ public class ResourceServiceImpl implements ResourceService {
             String groupId = resourceId.substring(2);
             String groupName = resourceInfo.getName();
 
-            String className = "";
-            switch (resourceInfo.getShift()){
-                case 1:
-                    className = "ALL";
-                    break;
-                case 2:
-                    className = "DAY";
-                    break;
-                case 3:
-                    className = "NIGHT";
-                    break;
-                default:
-                    break;
-            }
+            String className = getClassName(resourceInfo.getShift());
 
             GroupPo groupPo = groupRepository.findGroupPoByGroupId(groupId);
             groupPo.setGroupName(groupName);
@@ -220,20 +216,7 @@ public class ResourceServiceImpl implements ResourceService {
     public ResponseVO addResource(ResourceAddVo resourceInfo) {
         int type = resourceInfo.getType();
         if(type == 1){
-            String className = "";
-            switch (resourceInfo.getShift()){
-                case 1:
-                    className = "ALL";
-                    break;
-                case 2:
-                    className = "DAY";
-                    break;
-                case 3:
-                    className = "NIGHT";
-                    break;
-                default:
-                    break;
-            }
+            String className = getClassName(resourceInfo.getShift());
             String groupName = resourceInfo.getName();
             String groupId = groupName.substring(0, groupName.indexOf("组"));
             if(checkGroupExist(groupId))
@@ -498,12 +481,14 @@ public class ResourceServiceImpl implements ResourceService {
         int productIdBegin = groupIdList.size() + machineIdList.size() + 1;
 
         for(ScheduleOutputDto.Order order: orderList){
+            String orderId = order.getId();
+            orderId = orderId.substring(0, orderId.indexOf("-"));
             //子订单列表
             List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
             //产品id
-            String itemId = orderRepository.findOrderPoByOrderId(order.getId()).getItemId();
+            String itemId = orderRepository.findOrderPoByOrderId(orderId).getItemId();
             //产品名称（数据表里暂时没有这一项）
-            String itemName = "产品" + orderRepository.findOrderPoByOrderId(order.getId()).getItemId();
+            String itemName = "产品" + itemId;
             //为该产品随机生成一个颜色（延期为红色）
             String color = checkForDelay(order);
 
@@ -776,9 +761,35 @@ public class ResourceServiceImpl implements ResourceService {
             case "AFTERNOON":
             case "EVENING":
                 return 8;
-
         }
         return 0;
+    }
+
+    public String getClassName(int shift){
+        String className = "";
+        switch (shift){
+            case 1:
+                className = "ALL";
+                break;
+            case 2:
+                className = "DAY";
+                break;
+            case 3:
+                className = "NIGHT";
+                break;
+            case 4:
+                className = "MORNING";
+                break;
+            case 5:
+                className = "AFTERNOON";
+                break;
+            case 6:
+                className = "EVENING";
+                break;
+            default:
+                break;
+        }
+        return className;
     }
 
     public boolean checkGroupExist(String groupId){

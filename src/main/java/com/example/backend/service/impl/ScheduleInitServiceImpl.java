@@ -15,6 +15,7 @@ import com.example.backend.service.ScheduleInitService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.service.TimerService;
 import com.example.backend.vo.ResponseVO;
+import io.swagger.models.auth.In;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -79,6 +80,15 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
                     case "ALL":
                         workInterval = new TimeIntervalDto(0, 24);
                         break;
+                    case "MORNING":
+                        workInterval = new TimeIntervalDto(6, 8);
+                        break;
+                    case "AFTERNOON":
+                        workInterval = new TimeIntervalDto(14, 8);
+                        break;
+                    case "EVENING":
+                        workInterval = new TimeIntervalDto(22, 8);
+                        break;
                     default:
                         break;
                 }
@@ -128,7 +138,8 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
 
                 var bomPoList = bomRepository.findBomPosByBomId(itemId);
                 if(!bomPoList.isEmpty()){
-                    for(BomPo bomPo: bomPoList){
+                    for(int i = 0; i < bomPoList.size(); i++){
+                        BomPo bomPo = bomPoList.get(i);
                         String process = bomPo.getProcess();
                         int standardOutput = Integer.parseInt(bomPo.getStandardOutput());
                         int workCount = bomPo.getWorkerCount();
@@ -149,10 +160,15 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
                             if (!machinePoList.isEmpty())
                                 availableMachineList.add(machinePoList.get(0).getMachineId());
                         }
+                        String requiredOrderId = null;
+                        if(i > 0){
+                            requiredOrderId = orderId + "-" + bomPoList.get(i - 1).getProcess();
+                        }
 
                         ScheduleInputDto.Order order = new ScheduleInputDto.Order(orderId + "-" + process, orderName + "-" + process, false, needHour,
-                                workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl, null);
+                                workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl, requiredOrderId);
                         orderList.add(order);
+
                     }
                 }
             }

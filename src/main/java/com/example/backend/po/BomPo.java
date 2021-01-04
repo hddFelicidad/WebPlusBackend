@@ -3,6 +3,8 @@ package com.example.backend.po;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.util.List;
@@ -20,10 +22,12 @@ public class BomPo {
 
     private String process;
 
-    @ElementCollection
+    @Fetch(FetchMode.SUBSELECT)
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> groupResourceList;
 
-    @ElementCollection
+    @Fetch(FetchMode.SUBSELECT)
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String>  machineResourceList;
 
     private String changeTime;

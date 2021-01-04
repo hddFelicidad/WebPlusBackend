@@ -15,4 +15,6 @@ public interface OrderService {
     ResponseVO getOrderPlan();
 
     ResponseVO getOrderPlanProduction();
+
+    ResponseVO getAllProduct();
 }

@@ -1,9 +1,11 @@
 package com.example.backend.service.impl;
 
+import com.example.backend.data.BomRepository;
 import com.example.backend.data.GroupRepository;
 import com.example.backend.data.MachineRepository;
 import com.example.backend.data.OrderRepository;
 import com.example.backend.dto.ScheduleOutputDto;
+import com.example.backend.po.BomPo;
 import com.example.backend.po.GroupPo;
 import com.example.backend.po.MachinePo;
 import com.example.backend.po.OrderPo;
@@ -15,6 +17,7 @@ import com.example.backend.vo.OrderOccupyVo;
 import com.example.backend.vo.OrderPlanVo;
 import com.example.backend.vo.OrderProductionVo;
 import com.example.backend.vo.ResponseVO;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +39,8 @@ public class OrderServiceImpl implements OrderService {
     GroupRepository groupRepository;
     @Autowired
     MachineRepository machineRepository;
+    @Autowired
+    BomRepository bomRepository;
 
 
     @Override
@@ -143,6 +148,22 @@ public class OrderServiceImpl implements OrderService {
             orderProductionVoList.add(orderProductionVo);
         }
         return ResponseVO.buildSuccess(orderProductionVoList);
+    }
+
+    @Override
+    public ResponseVO getAllProduct() {
+        var bomPoList = bomRepository.findAll();
+        if(!bomPoList.isEmpty()){
+            List<String> productList = new ArrayList<>();
+            for(BomPo bomPo: bomPoList){
+                String productId = bomPo.getBomId();
+                if(productList.indexOf(productId) == -1){
+                    productList.add(productId);
+                }
+            }
+            return ResponseVO.buildSuccess(productList);
+        }
+        return ResponseVO.buildFailure();
     }
 
     /**
@@ -286,13 +307,15 @@ public class OrderServiceImpl implements OrderService {
         for(ScheduleOutputDto.Order order: orderList){
             OrderOccupyVo orderOccupy = new OrderOccupyVo();
             String orderId = order.getId();
+            String process = orderId.substring(orderId.indexOf("-"));
+            orderId = orderId.substring(0, orderId.indexOf("-"));
             OrderPo orderPo = orderRepository.findOrderPoByOrderId(orderId);
             String deadLine = simpleDateFormat.format(orderPo.getDeadLine());
 
             orderOccupy.setId(id);
             orderOccupy.setNumber(orderId);
             //暂时没有获取工艺的方法
-            orderOccupy.setText("装配");
+            orderOccupy.setText(process);
             //产品名称（数据表里暂时没有这一项）
             orderOccupy.setName("产品" + orderPo.getItemId());
             orderOccupy.setDeal_date(deadLine);
@@ -328,7 +351,7 @@ public class OrderServiceImpl implements OrderService {
             subOrderOccupy.setId(id);
             subOrderOccupy.setNumber(orderId);
             //暂时没有获取工艺的方法
-            subOrderOccupy.setText("装配");
+            subOrderOccupy.setText(process);
             //产品名称（数据表里暂时没有这一项）
             subOrderOccupy.setName("产品" + orderPo.getItemId());
             subOrderOccupy.setDeal_date(deadLine);
