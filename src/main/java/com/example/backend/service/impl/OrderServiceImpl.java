@@ -4,6 +4,7 @@ import com.example.backend.data.BomRepository;
 import com.example.backend.data.GroupRepository;
 import com.example.backend.data.MachineRepository;
 import com.example.backend.data.OrderRepository;
+import com.example.backend.dto.ScheduleInputDto;
 import com.example.backend.dto.ScheduleOutputDto;
 import com.example.backend.po.BomPo;
 import com.example.backend.po.GroupPo;
@@ -26,6 +27,8 @@ import java.util.*;
 public class OrderServiceImpl implements OrderService {
     @Autowired
     ScheduleService scheduleService;
+    @Autowired
+    ScheduleInitServiceImpl scheduleInitService;
     @Autowired
     OrderUtil orderUtil;
     @Autowired
@@ -175,8 +178,11 @@ public class OrderServiceImpl implements OrderService {
             int orderId = random.nextInt(200000) + 800000;
             OrderPo order = new OrderPo(String.valueOf(orderId), itemId, itemCount, deadline);
             OrderPo newOrder = orderRepository.save(order);
-
-            //TODO:插单
+            
+            ScheduleInputDto scheduleInputDto = scheduleInitService.getScheduleInput();
+            Date insertTime = new Date();
+            List<ScheduleInputDto.Order> orderList = createUrgentOrder(newOrder);
+            scheduleService.scheduleInsertUrgentOrder(scheduleInputDto, insertTime, orderList.get(0));
 
             return ResponseVO.buildSuccess(newOrder.getOrderId());
         }catch (ParseException e){
@@ -394,4 +400,50 @@ public class OrderServiceImpl implements OrderService {
         return ResponseVO.buildSuccess(content);
     }
 
+    public List<ScheduleInputDto.Order> createUrgentOrder(OrderPo orderPo){
+        List<ScheduleInputDto.Order> orderList = new ArrayList<>();
+        String orderId = orderPo.getOrderId();
+        String orderName = "订单" + orderId;
+        Date ddl = orderPo.getDeadLine();
+
+        String itemId = orderPo.getItemId();
+        int itemCount = orderPo.getItemCount();
+
+        var bomPoList = bomRepository.findBomPosByBomId(itemId);
+        if(!bomPoList.isEmpty()){
+            for(int i = 0; i < bomPoList.size(); i++){
+                BomPo bomPo = bomPoList.get(i);
+                String process = bomPo.getProcess();
+                int standardOutput = Integer.parseInt(bomPo.getStandardOutput());
+                int workCount = bomPo.getWorkerCount();
+                List<String> groupResourceList = bomPo.getGroupResourceList();
+                List<String> lineResourceList = bomPo.getMachineResourceList();
+
+                int needHour = itemCount / standardOutput;
+
+                List<String> availableGroupList = new ArrayList<>();
+                for (String groupName : groupResourceList) {
+                    GroupPo groupPo = groupRepository.findGroupPoByGroupName(groupName);
+                    if (groupPo != null)
+                        availableGroupList.add(groupPo.getGroupId());
+                }
+                List<String> availableMachineList = new ArrayList<>();
+                for (String machineName : lineResourceList) {
+                    List<MachinePo> machinePoList = machineRepository.findMachinePosByMachineName(machineName);
+                    if (!machinePoList.isEmpty())
+                        availableMachineList.add(machinePoList.get(0).getMachineId());
+                }
+                String requiredOrderId = null;
+                if(i > 0){
+                    requiredOrderId = orderId + "-" + bomPoList.get(i - 1).getProcess();
+                }
+
+                ScheduleInputDto.Order order = new ScheduleInputDto.Order(orderId + "-" + process, orderName + "-" + process, false, needHour,
+                        workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl, requiredOrderId);
+                orderList.add(order);
+            }
+        }
+
+        return orderList;
+    }
 }
