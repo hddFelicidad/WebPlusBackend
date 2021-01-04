@@ -13,10 +13,7 @@ import com.example.backend.service.OrderService;
 import com.example.backend.service.ScheduleService;
 import com.example.backend.util.CommonUtil;
 import com.example.backend.util.OrderUtil;
-import com.example.backend.vo.OrderOccupyVo;
-import com.example.backend.vo.OrderPlanVo;
-import com.example.backend.vo.OrderProductionVo;
-import com.example.backend.vo.ResponseVO;
+import com.example.backend.vo.*;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -163,6 +160,29 @@ public class OrderServiceImpl implements OrderService {
             }
             return ResponseVO.buildSuccess(productList);
         }
+        return ResponseVO.buildFailure();
+    }
+
+    @Override
+    public ResponseVO insertUrgentOrder(UrgentOrderVo urgentOrder) {
+        try{
+            String itemId = urgentOrder.getProductId();
+            int itemCount = Integer.parseInt(urgentOrder.getQuantity());
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date deadline = simpleDateFormat.parse(urgentOrder.getDate());
+
+            Random random = new Random();
+            int orderId = random.nextInt(200000) + 800000;
+            OrderPo order = new OrderPo(String.valueOf(orderId), itemId, itemCount, deadline);
+            OrderPo newOrder = orderRepository.save(order);
+
+            //TODO:插单
+
+            return ResponseVO.buildSuccess(newOrder.getOrderId());
+        }catch (ParseException e){
+            e.printStackTrace();
+        }
+
         return ResponseVO.buildFailure();
     }
 

@@ -50,4 +50,13 @@ public class OrderController {
         return orderService.getOrderPlanProduction();
     }
 
+    @GetMapping(value = "/product/all")
+    public ResponseVO getAllProduct(){
+        return orderService.getAllProduct();
+    }
+
+    @PostMapping(value = "/controll/order")
+    public ResponseVO insertUrgentOrder(@RequestBody UrgentOrderVo urgentOrder){
+        return orderService.insertUrgentOrder(urgentOrder);
+    }
 }
