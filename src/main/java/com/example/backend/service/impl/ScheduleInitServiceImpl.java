@@ -81,13 +81,13 @@ public class ScheduleInitServiceImpl implements ScheduleInitService {
                         workInterval = new TimeIntervalDto(0, 24);
                         break;
                     case "MORNING":
-                        workInterval = new TimeIntervalDto(6, 8);
+                        workInterval = new TimeIntervalDto(7, 8);
                         break;
                     case "AFTERNOON":
-                        workInterval = new TimeIntervalDto(14, 8);
+                        workInterval = new TimeIntervalDto(15, 8);
                         break;
                     case "EVENING":
-                        workInterval = new TimeIntervalDto(22, 8);
+                        workInterval = new TimeIntervalDto(23, 8);
                         break;
                     default:
                         break;
