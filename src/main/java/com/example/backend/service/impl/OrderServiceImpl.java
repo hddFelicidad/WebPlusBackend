@@ -178,7 +178,7 @@ public class OrderServiceImpl implements OrderService {
             int orderId = random.nextInt(200000) + 800000;
             OrderPo order = new OrderPo(String.valueOf(orderId), itemId, itemCount, deadline);
             OrderPo newOrder = orderRepository.save(order);
-            
+
             ScheduleInputDto scheduleInputDto = scheduleInitService.getScheduleInput();
             Date insertTime = new Date();
             List<ScheduleInputDto.Order> orderList = createUrgentOrder(newOrder);

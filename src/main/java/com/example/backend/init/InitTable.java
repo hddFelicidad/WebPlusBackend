@@ -11,6 +11,7 @@ import com.example.backend.po.OrderPo;
 import com.example.backend.service.LegacySystemService;
 import com.example.backend.service.impl.controllerWS.attendanceService.CalendarEntity;
 import com.example.backend.service.impl.controllerWS.erpService.BomEntity;
+import com.example.backend.service.impl.controllerWS.erpService.LineEntity;
 import com.example.backend.service.impl.controllerWS.erpService.ResourceEntity;
 import com.example.backend.service.impl.controllerWS.orderService.OrderEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,29 +88,27 @@ public class InitTable {
         var machines = machineRepository.findAll();
         if(machines.isEmpty()){
             System.out.println("Machine init begin ...");
-            List<ResourceEntity> resourceInfoList = legacySystemService.getResourceTeamInfo();
+            List<LineEntity> machineInfoList = legacySystemService.getAllLineResources();
             int id = 10000;
-            for(ResourceEntity resourceInfo: resourceInfoList){
-                if(resourceInfo.getResourceName().equals("线体")){
-                    String machineName = resourceInfo.getResourceId();
-                    String machineId;
-                    if(machineName.startsWith("line")){
-                        machineId = machineName.substring(4);
-                        if(machineId.startsWith("0")){
-                            machineId = machineName.substring(5);
-                        }
-                    }else{
-                        machineId = String.valueOf(id);
-                        id++;
+            for(LineEntity machineInfo: machineInfoList){
+                String machineName = machineInfo.getId();
+                String machineId;
+                if(machineName.startsWith("line")){
+                    machineId = machineName.substring(4);
+                    if(machineId.startsWith("0")){
+                        machineId = machineName.substring(5);
                     }
+                }else{
+                    machineId = String.valueOf(id);
+                    id++;
+                }
 
-                    int count = Integer.parseInt(resourceInfo.getResourceNum());
+                int count = machineInfo.getCount();
 
-                    for(int i = 0; i < count; i++){
-                        MachinePo machinePo = new MachinePo(null, machineName,
-                                machineId, "2020-11-01");
-                        machineRepository.save(machinePo);
-                    }
+                for(int i = 0; i < count; i++){
+                    MachinePo machinePo = new MachinePo(null, machineName,
+                            machineId, "2020-11-01");
+                    machineRepository.save(machinePo);
                 }
             }
             System.out.println("Machine init end ...");
