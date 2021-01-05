@@ -355,8 +355,6 @@ public class OrderServiceImpl implements OrderService {
             OrderOccupyVo orderOccupy = new OrderOccupyVo();
             orderOccupy.setId(id);
             orderOccupy.setNumber(orderId);
-            //TODO
-            orderOccupy.setText("");
             orderOccupy.setName("产品" + orderPo.getItemId());
             orderOccupy.setDeal_date(deadLine);
             //父任务数据项id
