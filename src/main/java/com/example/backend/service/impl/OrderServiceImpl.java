@@ -330,72 +330,96 @@ public class OrderServiceImpl implements OrderService {
         //当天能准时交付的订单
         int deliveryCount = 0;
 
+        List<String> currentAllOrderIdList = new ArrayList<>();
+        List<List<ScheduleOutputDto.Order>> currentAllOrderList = new ArrayList<>();
+
         for(ScheduleOutputDto.Order order: orderList){
-            OrderOccupyVo orderOccupy = new OrderOccupyVo();
-            String orderId = order.getId();
-            String process = orderId.substring(orderId.indexOf("-"));
-            orderId = orderId.substring(0, orderId.indexOf("-"));
+            String orderId = order.getId().substring(0, order.getId().indexOf("-"));
+            if(order.getRequiredOrderId() == null){
+                currentAllOrderIdList.add(orderId);
+                List<ScheduleOutputDto.Order> tmp = new ArrayList<>();
+                tmp.add(order);
+                currentAllOrderList.add(tmp);
+            }else{
+                int index = currentAllOrderIdList.indexOf(orderId);
+                currentAllOrderList.get(index).add(order);
+            }
+        }
+
+        for(int i = 0; i < currentAllOrderIdList.size(); i++){
+            List<ScheduleOutputDto.Order> tmp = currentAllOrderList.get(i);
+            String orderId = currentAllOrderIdList.get(i);
             OrderPo orderPo = orderRepository.findOrderPoByOrderId(orderId);
             String deadLine = simpleDateFormat.format(orderPo.getDeadLine());
 
+            OrderOccupyVo orderOccupy = new OrderOccupyVo();
             orderOccupy.setId(id);
             orderOccupy.setNumber(orderId);
-            //暂时没有获取工艺的方法
-            orderOccupy.setText(process);
-            //产品名称（数据表里暂时没有这一项）
+            //TODO
+            orderOccupy.setText("");
             orderOccupy.setName("产品" + orderPo.getItemId());
             orderOccupy.setDeal_date(deadLine);
             //父任务数据项id
             int parentId = id;
             id++;
-            List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
-            //预计交期（最后一个子订单的结束时间）
-            Date dealDate = subOrderList.get(subOrderList.size() - 1).getEndTime();
+            //最后一个工艺的最后一个子订单的结束时间
+            List<ScheduleOutputDto.SubOrder> tmpSubOrderList = tmp.get(tmp.size() - 1).getSubOrders();
+            Date dealDate = tmpSubOrderList.get(tmpSubOrderList.size() - 1).getEndTime();
             orderOccupy.setExpc_date(simpleDateFormat.format(dealDate));
 
             //判断此订单准时交付
             if(!dealDate.after(orderPo.getDeadLine()))
                 deliveryCount++;
 
-            int doneTime = 0;
-            int totalTime = 0;
+            String allProcess = "";
+            int allDoneTime = 0;
+            int allTotalTime = 0;
+            for(ScheduleOutputDto.Order order: tmp){
+                String process = order.getId().substring(order.getId().indexOf("-") + 1);
+                allProcess += process + ",";
 
-            for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
-                int durationHour = subOrder.getDurationTimeInHour();
-                Date startTime = subOrder.getStartTime();
-                Date endTime = subOrder.getEndTime();
-                totalTime += durationHour;
-                if(startTime.before(endDate)){
-                    if(endTime.after(endDate)){
-                        doneTime += commonUtil.getDistanceHour(startTime, commonUtil.addStartHour(startDate, 24));
-                    }else{
-                        doneTime += durationHour;
+                List<ScheduleOutputDto.SubOrder> subOrderList = order.getSubOrders();
+                Date ddl = subOrderList.get(subOrderList.size() - 1).getEndTime();
+
+                int doneTime = 0;
+                int totalTime = 0;
+                for(ScheduleOutputDto.SubOrder subOrder: subOrderList){
+                    int durationHour = subOrder.getDurationTimeInHour();
+                    Date startTime = subOrder.getStartTime();
+                    Date endTime = subOrder.getEndTime();
+                    totalTime += durationHour;
+                    if(startTime.before(endDate)){
+                        if(endTime.after(endDate)){
+                            doneTime += commonUtil.getDistanceHour(startTime, commonUtil.addStartHour(startDate, 24));
+                        }else{
+                            doneTime += durationHour;
+                        }
                     }
                 }
+                allDoneTime += doneTime;
+                allTotalTime += totalTime;
+                OrderOccupyVo subOrderOccupy = new OrderOccupyVo();
+                subOrderOccupy.setId(id);
+                subOrderOccupy.setNumber(orderId);
+                subOrderOccupy.setText(process);
+                subOrderOccupy.setName("产品" + orderPo.getItemId());
+                subOrderOccupy.setDeal_date(deadLine);
+                subOrderOccupy.setExpc_date(simpleDateFormat.format(ddl));
+                subOrderOccupy.setParent(parentId);
+                id++;
+                subOrderOccupy.setProgress((float) doneTime / totalTime);
+                orderOccupyVoList.add(subOrderOccupy);
             }
-            OrderOccupyVo subOrderOccupy = new OrderOccupyVo();
-            subOrderOccupy.setId(id);
-            subOrderOccupy.setNumber(orderId);
-            //暂时没有获取工艺的方法
-            subOrderOccupy.setText(process);
-            //产品名称（数据表里暂时没有这一项）
-            subOrderOccupy.setName("产品" + orderPo.getItemId());
-            subOrderOccupy.setDeal_date(deadLine);
-            subOrderOccupy.setExpc_date(simpleDateFormat.format(dealDate));
-            subOrderOccupy.setParent(parentId);
-            id++;
-            subOrderOccupy.setProgress((float) doneTime / totalTime);
-            orderOccupyVoList.add(subOrderOccupy);
 
-
-            orderOccupy.setProgress((float) doneTime / totalTime);
+            orderOccupy.setText(allProcess.substring(0, allProcess.length()-1));
+            orderOccupy.setProgress((float) allDoneTime/allTotalTime);
             orderOccupyVoList.add(orderOccupy);
         }
 
         tasks.put("data", orderOccupyVoList);
         tasks.put("links", links);
         content.put("tasks", tasks);
-        content.put("delivery_rate", deliveryCount * 100 / orderList.size());
+        content.put("delivery_rate", deliveryCount * 100 / currentAllOrderIdList.size());
 
         return ResponseVO.buildSuccess(content);
     }

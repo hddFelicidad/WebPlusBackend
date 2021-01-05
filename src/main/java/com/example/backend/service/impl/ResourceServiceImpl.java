@@ -712,6 +712,7 @@ public class ResourceServiceImpl implements ResourceService {
      */
     public String checkForDelay(ScheduleOutputDto.Order order){
         String id = order.getId();
+        id = id.substring(0, id.indexOf("-"));
         //判断最后一个子订单是否超期
         ScheduleOutputDto.SubOrder lastSubOrder = order.getSubOrders().get(order.getSubOrders().size() - 1);
         Date dueTime = orderRepository.findOrderPoByOrderId(id).getDeadLine();  //DDL
