@@ -10,7 +10,7 @@ public interface ScheduleService {
      * 提交排程的异步任务 该函数将会立刻返回 需要调用其他函数获取排程结果
      */
     default void schedule(ScheduleInputDto input, Date startTime) {
-        schedule(input, startTime, 4, 0.5);
+        schedule(input, startTime, 4, 1);
     }
 
     void schedule(ScheduleInputDto input, Date startTime, int subOrderMaxNeedTime, double denseFactor);
@@ -26,7 +26,7 @@ public interface ScheduleService {
      */
     default boolean scheduleInsertUrgentOrder(ScheduleInputDto input, Date insertTime,
             ScheduleInputDto.Order urgentOrder) {
-        return scheduleInsertUrgentOrder(input, insertTime, urgentOrder, 4, 0.5);
+        return scheduleInsertUrgentOrder(input, insertTime, urgentOrder, 4, 1);
     }
 
     boolean scheduleInsertUrgentOrder(ScheduleInputDto input, Date insertTime, ScheduleInputDto.Order urgentOrder,
