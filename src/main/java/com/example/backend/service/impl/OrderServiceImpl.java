@@ -174,16 +174,17 @@ public class OrderServiceImpl implements OrderService {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date deadline = simpleDateFormat.parse(urgentOrder.getDate());
 
-            Random random = new Random();
-            int orderId = random.nextInt(200000) + 800000;
+            var existOrderList = orderRepository.findAll();
+            int orderId = Integer.parseInt(existOrderList.get(existOrderList.size() - 1).getOrderId()) + 1;
             OrderPo order = new OrderPo(String.valueOf(orderId), itemId, itemCount, deadline);
-            OrderPo newOrder = orderRepository.save(order);
 
             ScheduleInputDto scheduleInputDto = scheduleInitService.getScheduleInput();
-            Date insertTime = new Date();
-            List<ScheduleInputDto.Order> orderList = createUrgentOrder(newOrder);
+//            Date insertTime = new Date();
+            Date insertTime = simpleDateFormat.parse("2018-11-3");
+            List<ScheduleInputDto.Order> orderList = createUrgentOrder(order);
             scheduleService.scheduleInsertUrgentOrder(scheduleInputDto, insertTime, orderList.get(0));
 
+            OrderPo newOrder = orderRepository.save(order);
             return ResponseVO.buildSuccess(newOrder.getOrderId());
         }catch (ParseException e){
             e.printStackTrace();
@@ -455,14 +456,11 @@ public class OrderServiceImpl implements OrderService {
                     if (!machinePoList.isEmpty())
                         availableMachineList.add(machinePoList.get(0).getMachineId());
                 }
-                String requiredOrderId = null;
-                if(i > 0){
-                    requiredOrderId = orderId + "-" + bomPoList.get(i - 1).getProcess();
-                }
 
                 ScheduleInputDto.Order order = new ScheduleInputDto.Order(orderId + "-" + process, orderName + "-" + process, false, needHour,
-                        workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl, requiredOrderId);
-                orderList.add(order);
+                        workCount, new HashSet<>(availableGroupList), new HashSet<>(availableMachineList), ddl, null);
+                if(process.equals("装配"))
+                    orderList.add(order);
             }
         }
 
